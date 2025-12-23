@@ -1,0 +1,1 @@
+/usr/bin/bash: line 85: ./build.bat: Permission denied

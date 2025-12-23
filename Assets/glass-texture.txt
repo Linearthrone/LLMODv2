@@ -1,0 +1,18 @@
+# Glass Texture Placeholder
+# 
+# This file represents the glass texture used in the UI styling.
+# In a production build, this would be replaced with an actual
+# PNG image file that provides a subtle glass texture effect.
+#
+# Recommended texture specifications:
+# - Format: PNG with transparency
+# - Size: 256x256 pixels (seamless tile)
+# - Content: Subtle noise or brushed metal effect
+# - Opacity: Very low (10-15%)
+#
+# The texture is referenced in Styles/Styles.xaml:
+# <ImageBrush ImageSource="ms-appx:///Assets/glass-texture.png" Opacity="0.1"/>
+#
+# For best results, create a subtle noise pattern or brushed metal
+# texture that enhances the glassmorphism effect without being
+# distracting.

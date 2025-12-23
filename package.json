@@ -1,0 +1,50 @@
+{
+  "name": "llm-desktop-overlay",
+  "version": "1.0.0",
+  "description": "A modern WinUI 3 desktop overlay application for LLM chat interaction",
+  "main": "index.js",
+  "scripts": {
+    "build": "build.bat",
+    "run": "run.bat",
+    "dev": "echo 'Development mode - Open in Visual Studio'",
+    "clean": "rmdir /s /q bin obj 2>nul || echo 'Already clean'",
+    "test": "echo 'No tests configured yet'",
+    "lint": "echo 'No linting configured yet'",
+    "docs": "echo 'Documentation available in README.md'"
+  },
+  "keywords": [
+    "winui3",
+    "llm",
+    "chat",
+    "overlay",
+    "desktop",
+    "ai",
+    "gpt",
+    "claude",
+    "openai",
+    "anthropic"
+  ],
+  "author": "LLM Overlay Developer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/llm-desktop-overlay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/llm-desktop-overlay/issues"
+  },
+  "homepage": "https://github.com/your-username/llm-desktop-overlay#readme",
+  "engines": {
+    "dotnet": ">=8.0.0",
+    "os": "win11"
+  },
+  "os": ["win11"],
+  "winAppSDK": "1.6.241114003",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "electron": "^27.0.0"
+  }
+}
