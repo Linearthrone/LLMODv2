@@ -50,8 +50,6 @@ namespace LLMOverlay
             switch (model)
             {
                 case "gpt-3.5-turbo":
-                    _endpoint = "https://api.openai.com/v1";
-                    break;
                 case "gpt-4":
                     _endpoint = "https://api.openai.com/v1";
                     break;
@@ -60,6 +58,12 @@ namespace LLMOverlay
                     break;
                 case "local":
                     _endpoint = "http://localhost:1234/v1";
+                    break;
+                case "ollama":
+                    _endpoint = "http://localhost:11434/v1";
+                    break;
+                case "huggingface":
+                    _endpoint = "https://api-inference.huggingface.co";
                     break;
             }
         }
@@ -82,8 +86,9 @@ namespace LLMOverlay
                 // Send request based on current model
                 string response = _currentModel switch
                 {
-                    "gpt-3.5-turbo" or "gpt-4" or "local" => await SendOpenAIRequest(processedMessage),
+                    "gpt-3.5-turbo" or "gpt-4" or "local" or "ollama" => await SendOpenAIRequest(processedMessage),
                     "claude-3" => await SendClaudeRequest(processedMessage),
+                    "huggingface" => await SendHuggingFaceRequest(processedMessage),
                     _ => "Unsupported model selected"
                 };
 
@@ -253,6 +258,48 @@ namespace LLMOverlay
             return result?.Content?.FirstOrDefault()?.Text ?? "No response received";
         }
 
+        private async Task<string> SendHuggingFaceRequest(string message)
+        {
+            if (string.IsNullOrEmpty(_apiKey))
+            {
+                throw new InvalidOperationException("API key is required for HuggingFace models");
+            }
+
+            var requestBody = new
+            {
+                model = _currentModel,
+                messages = _conversationHistory.Select(m => new
+                {
+                    role = m.Sender == "user" ? "user" : "assistant",
+                    content = m.Content
+                }).ToList(),
+                temperature = _temperature
+            };
+
+            var json = JsonConvert.SerializeObject(requestBody, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/chat/completions")
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"API Error: {response.StatusCode} - {responseContent}");
+            }
+
+            var result = JsonConvert.DeserializeObject<OpenAIResponse>(responseContent);
+            return result?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response received";
+        }
+
         #region Settings Management
 
         private async void LoadSettings()
@@ -335,6 +382,7 @@ namespace LLMOverlay
         public string GetApiKey() => _apiKey;
         public string GetEndpoint() => _endpoint;
         public double GetTemperature() => _temperature;
+        public string GetCurrentModel() => _currentModel;
 
         public void SetApiKey(string apiKey) => _apiKey = apiKey;
         public void SetEndpoint(string endpoint) => _endpoint = endpoint;

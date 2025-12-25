@@ -19,14 +19,19 @@ namespace LLMOverlay
     {
         private bool _isMinimized = false;
         private double _expandedWidth;
+        private double _originalMinWidth;
+        private double _originalMinHeight;
+        private const double TrayWidth = 72d;
         private readonly LLMService _llmService;
         private readonly ObservableCollection<ChatMessage> _messages;
-        
+        private readonly ObservableCollection<string> _recentAssistantSnippets = new();
+        private RadialMenuWindow? _radialMenuWindow;
+
         // Settings dialog controls
         private TextBox _settingsApiKeyInput;
         private TextBox _settingsEndpointInput;
         private ComboBox _settingsModelComboBox;
-        
+
         // WPF specific Win32 API calls for window transparency and behavior
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
@@ -48,39 +53,68 @@ namespace LLMOverlay
             InitializeComponent();
             _llmService = new LLMService();
             _messages = new ObservableCollection<ChatMessage>();
-            
+
             // Assign the UI elements after InitializeComponent
             _settingsApiKeyInput = SettingsApiKeyInput;
             _settingsEndpointInput = SettingsEndpointInput;
             _settingsModelComboBox = SettingsModelComboBox;
-            
+
+             _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
+             _radialMenuWindow.Show();
+
+            UpdateCurrentModelDisplay();
+
+            _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
+            _radialMenuWindow.Show();
+
             InitializeChatInterface();
             LoadSettings();
-            
+
             // Set window to be click-through when not in focus
             this.Deactivated += MainWindow_Deactivated;
         }
 
+        private void UpdateRecentAssistantSnippets(string message)
+        {
+            var snippet = message.Length > 80 ? message.Substring(0, 80) + "..." : message;
+            _recentAssistantSnippets.Add(snippet);
+            while (_recentAssistantSnippets.Count > 2)
+            {
+                _recentAssistantSnippets.RemoveAt(0);
+            }
+        }
+
+        private void UpdateCurrentModelDisplay()
+        {
+            _radialMenuWindow?.UpdateCurrentModel();
+        }
+
         private void InitializeChatInterface()
         {
-            // Initialize message display
             MessagesPanel.Children.Clear();
-            
-            // Set initial window width to 1/3 of screen
-            var screenWidth = SystemParameters.PrimaryScreenWidth;
-            _expandedWidth = screenWidth / 3;
-            this.Width = _expandedWidth;
-            this.Height = SystemParameters.PrimaryScreenHeight * 0.8;
-            
-            // Position window on the right side
-            this.Left = screenWidth - _expandedWidth;
-            this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) / 2;
+
+            var workArea = SystemParameters.WorkArea;
+            _expandedWidth = Math.Max(workArea.Width / 3, this.MinWidth);
+            _originalMinWidth = this.MinWidth;
+            _originalMinHeight = this.MinHeight;
+
+            _isMinimized = true;
+            MainContentGrid.Visibility = Visibility.Collapsed;
+            MinimizedTray.Visibility = Visibility.Visible;
+
+            this.WindowStartupLocation = WindowStartupLocation.Manual;
+            this.MinWidth = TrayWidth;
+            this.MinHeight = 0;
+            this.Width = TrayWidth;
+            this.Height = workArea.Height;
+            this.Left = workArea.Right - TrayWidth;
+            this.Top = workArea.Top;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Add welcome message
-            AddSystemMessage("Welcome to LLM Overlay! Click outside to minimize.");
+            // App starts minimized to tray, no need for welcome message yet
+            // Welcome message will be shown when user expands the tray
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -98,13 +132,13 @@ namespace LLMOverlay
 
         private void MainWindow_Deactivated(object sender, EventArgs e)
         {
-            // Minimize to floating button when window loses focus
-            MinimizeToFloatingButton();
+            // Minimize to tray when window loses focus
+            MinimizeToTray();
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            MinimizeToFloatingButton();
+            MinimizeToTray();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -112,66 +146,88 @@ namespace LLMOverlay
             this.Close();
         }
 
-        private void MinimizeToFloatingButton()
+        private void MinimizeToTray()
         {
             if (!_isMinimized)
             {
                 _isMinimized = true;
                 MainContentGrid.Visibility = Visibility.Collapsed;
-                FloatingButton.Visibility = Visibility.Visible;
-                this.Width = 60;
-                this.Height = 60;
-                
-                // Position floating button
-                var screenWidth = SystemParameters.PrimaryScreenWidth;
-                this.Left = screenWidth - 70;
-                this.Top = 10;
+                MinimizedTray.Visibility = Visibility.Visible;
+
+                var workArea = SystemParameters.WorkArea;
+                this.MinWidth = TrayWidth;
+                this.MinHeight = 0;
+                this.Width = TrayWidth;  // Tray width
+                this.Height = workArea.Height;
+                this.Left = workArea.Right - TrayWidth;
+                this.Top = workArea.Top;
             }
         }
 
-        private void FloatingButton_Click(object sender, RoutedEventArgs e)
+        private void ExpandFromTray(bool showSettingsPanel)
+        {
+            _isMinimized = false;
+            MinimizedTray.Visibility = Visibility.Collapsed;
+            MainContentGrid.Visibility = Visibility.Visible;
+
+            var workArea = SystemParameters.WorkArea;
+            this.MinWidth = _originalMinWidth;
+            this.MinHeight = _originalMinHeight;
+            this.Width = Math.Max(_expandedWidth, this.MinWidth);
+            this.Height = workArea.Height;
+            this.Left = workArea.Right - this.Width;
+            this.Top = workArea.Top;
+
+            this.Activate();
+            this.Focus();
+
+            if (MessagesPanel.Children.Count == 0)
+            {
+                AddSystemMessage("Welcome to LLM Overlay! Click minimize or click outside to collapse to tray.");
+            }
+
+            if (showSettingsPanel)
+            {
+                SettingsPanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void MinimizedTray_Click(object sender, MouseButtonEventArgs e)
         {
             if (_isMinimized)
             {
-                _isMinimized = false;
-                FloatingButton.Visibility = Visibility.Collapsed;
-                MainContentGrid.Visibility = Visibility.Visible;
-                this.Width = _expandedWidth;
-                this.Height = SystemParameters.PrimaryScreenHeight * 0.8;
-                
-                // Position main window
-                var screenWidth = SystemParameters.PrimaryScreenWidth;
-                this.Left = screenWidth - _expandedWidth;
-                this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) / 2;
-                
-                this.Activate();
+                ExpandFromTray(false);
             }
         }
 
         private void SettingsToggleButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isMinimized)
+            {
+                ExpandFromTray(true);
+                return;
+            }
+
             if (SettingsPanel.Visibility == Visibility.Collapsed)
             {
                 SettingsPanel.Visibility = Visibility.Visible;
-                SettingsToggleButton.Content = "💬";
             }
             else
             {
                 SettingsPanel.Visibility = Visibility.Collapsed;
-                SettingsToggleButton.Content = "⚙️";
             }
         }
 
-        private async void SendButton_Click(object sender, RoutedEventArgs e)
-        {
-            await SendMessage();
-        }
+         private async void SendButton_Click(object sender, RoutedEventArgs e)
+         {
+             await SendMessage();
+         }
 
         private void MessageInputBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             var textLength = MessageInputBox.Text.Length;
             CharacterCounter.Text = $"{textLength} / 4000";
-            
+
             // Change color based on character count
             if (textLength > 3500)
                 CharacterCounter.Foreground = new SolidColorBrush(Color.FromRgb(255, 100, 100));
@@ -187,6 +243,28 @@ namespace LLMOverlay
             {
                 e.Handled = true;
                 _ = SendMessage();
+            }
+        }
+
+        private string GetSelectedModel()
+        {
+            if (SettingsModelComboBox.SelectedItem is ComboBoxItem item && item.Content != null)
+            {
+                return item.Content.ToString() ?? "gpt-3.5-turbo";
+            }
+            return "gpt-3.5-turbo";
+        }
+
+        private void SelectModelInCombo(string modelName)
+        {
+            foreach (var item in SettingsModelComboBox.Items)
+            {
+                if (item is ComboBoxItem comboItem && comboItem.Content != null &&
+                    string.Equals(comboItem.Content.ToString(), modelName, StringComparison.OrdinalIgnoreCase))
+                {
+                    SettingsModelComboBox.SelectedItem = comboItem;
+                    return;
+                }
             }
         }
 
@@ -210,7 +288,7 @@ namespace LLMOverlay
             {
                 // Get response from LLM service
                 var response = await _llmService.SendMessageAsync(message);
-                
+
                 // Remove typing indicator and add response
                 RemoveLastSystemMessage();
                 AddAssistantMessage(response);
@@ -240,7 +318,7 @@ namespace LLMOverlay
 
             messageBorder.Child = textBlock;
             MessagesPanel.Children.Add(messageBorder);
-            
+
             // Scroll to bottom
             ChatScrollViewer.ScrollToBottom();
         }
@@ -263,7 +341,9 @@ namespace LLMOverlay
 
             messageBorder.Child = textBlock;
             MessagesPanel.Children.Add(messageBorder);
-            
+
+            UpdateRecentAssistantSnippets(message);
+            UpdateCurrentModelDisplay();
             // Scroll to bottom
             ChatScrollViewer.ScrollToBottom();
         }
@@ -288,7 +368,7 @@ namespace LLMOverlay
 
             messageBorder.Child = textBlock;
             MessagesPanel.Children.Add(messageBorder);
-            
+
             // Scroll to bottom
             ChatScrollViewer.ScrollToBottom();
         }
@@ -316,24 +396,30 @@ namespace LLMOverlay
             {
                 // Load settings from local storage
                 var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
-                
+
                 if (System.IO.File.Exists(settingsPath))
                 {
                     var settingsJson = System.IO.File.ReadAllText(settingsPath);
                     var settings = JsonConvert.DeserializeObject<Dictionary<string, string>>(settingsJson);
-                    
+
                     if (settings != null)
                     {
                         if (settings.ContainsKey("ApiKey"))
                             SettingsApiKeyInput.Text = settings["ApiKey"];
-                        
                         if (settings.ContainsKey("Endpoint"))
                             SettingsEndpointInput.Text = settings["Endpoint"];
-                        
+
                         if (settings.ContainsKey("Model"))
-                            SettingsModelComboBox.SelectedItem = settings["Model"];
+                        {
+                            SelectModelInCombo(settings["Model"]);
+                        }
+
+                        _llmService.UpdateSettings(settings);
+                        UpdateCurrentModelDisplay();
                     }
                 }
+
+                UpdateCurrentModelDisplay();
             }
             catch (Exception ex)
             {
@@ -345,32 +431,49 @@ namespace LLMOverlay
         {
             try
             {
+                var modelName = GetSelectedModel();
                 var settings = new Dictionary<string, string>
                 {
                     ["ApiKey"] = SettingsApiKeyInput.Text ?? "",
                     ["Endpoint"] = SettingsEndpointInput.Text ?? "",
-                    ["Model"] = SettingsModelComboBox.SelectedItem?.ToString() ?? "gpt-3.5-turbo"
+                    ["Model"] = modelName
                 };
 
                 var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
                 System.IO.Directory.CreateDirectory(settingsPath);
-                
+
                 var settingsFile = System.IO.Path.Combine(settingsPath, "settings.json");
                 var settingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                
+
                 System.IO.File.WriteAllText(settingsFile, settingsJson);
-                
+
                 // Update LLM service with new settings
                 _llmService.UpdateSettings(settings);
-                
+                UpdateCurrentModelDisplay();
+
                 AddSystemMessage("Settings saved successfully!");
                 SettingsPanel.Visibility = Visibility.Collapsed;
-                SettingsToggleButton.Content = "⚙️";
             }
             catch (Exception ex)
             {
                 AddSystemMessage($"Failed to save settings: {ex.Message}");
             }
+        }
+
+        public void ShowFromRadial(bool showSettingsPanel)
+        {
+            ExpandFromTray(showSettingsPanel);
+        }
+
+        public void ShowPersonaComingSoon()
+        {
+            AddSystemMessage("Persona creation: configure prompts and save presets (ollama or HuggingFace). Coming soon.");
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _radialMenuWindow?.Close();
         }
     }
 }

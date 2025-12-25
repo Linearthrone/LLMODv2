@@ -60,7 +60,7 @@
                             <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="0,0,8,0">
                                 <Button x:Name="MinimizeButton" 
                                         Content="−" 
-                                        Width="32" Height="32" 
+                                        Width="75" Height="75" 
                                         Margin="2"
                                         Background="Transparent" 
                                         BorderThickness="0"
@@ -116,6 +116,8 @@
                                                 <ComboBoxItem Content="gpt-4"/>
                                                 <ComboBoxItem Content="claude-3"/>
                                                 <ComboBoxItem Content="local"/>
+                                                <ComboBoxItem Content="ollama"/>
+                                                <ComboBoxItem Content="huggingface"/>
                                             </ComboBox>
                                             
                                             <Button x:Name="SaveSettingsButton" Content="Save Settings" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,0,0" Click="SaveSettingsButton_Click"/>
@@ -169,18 +171,6 @@
                                             FontSize="20"
                                             Click="SendButton_Click"/>
                                 </Grid>
-                                
-                                <!-- Settings Toggle -->
-                                <Button x:Name="SettingsToggleButton" 
-                                        Grid.Row="1"
-                                        Content="⚙️" 
-                                        Width="30" Height="30" 
-                                        HorizontalAlignment="Left" 
-                                        VerticalAlignment="Bottom"
-                                        Margin="0,0,0,30"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Click="SettingsToggleButton_Click"/>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -188,30 +178,76 @@
             </Border>
         </Grid>
         
-        <!-- Minimized Floating Button -->
-        <Button x:Name="FloatingButton"
-                Width="50" Height="50"
+        <!-- Minimized Vertical Bar (Always Visible Tray) -->
+        <Border x:Name="MinimizedTray"
+                Width="72"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Margin="0,10,10,0"
-                Background="#E61E40AF"
+                VerticalAlignment="Stretch"
+                Panel.ZIndex="10"
                 BorderBrush="#33FFFFFF"
-                BorderThickness="1"
-                Foreground="#FFFFFFFF"
-                FontSize="20"
-                Content="🤖"
+                BorderThickness="1,0,0,0"
                 Visibility="Collapsed"
-                Click="FloatingButton_Click">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="25">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
+                MouseDown="MinimizedTray_Click"
+                Cursor="Hand">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#E6000000" Offset="0"/>
+                    <GradientStop Color="#E6111111" Offset="1"/>
+                    <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#E6000000" Offset="0"/>
+                                <GradientStop Color="#E6111111" Offset="1"/>
+                                <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+                            </LinearGradientBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FF2C5AA0" Offset="0"/>
+                                        <GradientStop Color="#FF2C5AA0" Offset="1"/>
+                                        <GradientStop Color="#55FFFFFF" Offset="0.5"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🤖" 
+                               FontSize="24" 
+                               Foreground="White"
+                               HorizontalAlignment="Center" 
+                               TextAlignment="Center"
+                               Margin="0,0,0,6"/>
+                    <StackPanel x:Name="TrayButtonsPanel"
+                                Orientation="Vertical"
+                                HorizontalAlignment="Center">
+                        <Button x:Name="SettingsToggleButton"
+                                Width="32" Height="32"
+                                Background="Transparent"
+                                BorderBrush="#66FFFFFF"
+                                BorderThickness="1"
+                                Click="SettingsToggleButton_Click">
+                            <TextBlock Text="🔧"
+                                       FontSize="24"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
