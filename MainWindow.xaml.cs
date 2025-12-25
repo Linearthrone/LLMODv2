@@ -49,6 +49,11 @@ namespace LLMOverlay
             _llmService = new LLMService();
             _messages = new ObservableCollection<ChatMessage>();
             
+            // Assign the UI elements after InitializeComponent
+            _settingsApiKeyInput = SettingsApiKeyInput;
+            _settingsEndpointInput = SettingsEndpointInput;
+            _settingsModelComboBox = SettingsModelComboBox;
+            
             InitializeChatInterface();
             LoadSettings();
             
