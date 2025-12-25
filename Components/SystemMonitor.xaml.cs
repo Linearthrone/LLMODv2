@@ -177,10 +177,9 @@ namespace LLMOverlay.Components
             parent?.Close();
         }
 
-        protected override void OnUnloaded(RoutedEventArgs e)
+        private void SystemMonitor_Unloaded(object sender, RoutedEventArgs e)
         {
             _updateTimer?.Stop();
-            base.OnUnloaded(e);
         }
     }
 }

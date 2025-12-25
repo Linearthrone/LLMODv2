@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -27,6 +28,7 @@ namespace LLMOverlay
     public class LLMService
     {
         private readonly HttpClient _httpClient;
+        private readonly string _settingsFilePath;
         private string _currentModel = "gpt-3.5-turbo";
         private string _apiKey = string.Empty;
         private string _endpoint = "https://api.openai.com/v1";
@@ -39,13 +41,14 @@ namespace LLMOverlay
             _httpClient = new HttpClient();
             _conversationHistory = new List<ChatMessage>();
             _mediaAttachments = new List<MediaAttachment>();
+            _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
             LoadSettings();
         }
 
         public void SetModel(string model)
         {
             _currentModel = model;
-            
+
             // Adjust settings based on model
             switch (model)
             {
@@ -302,27 +305,36 @@ namespace LLMOverlay
 
         #region Settings Management
 
-        private async void LoadSettings()
+        private void LoadSettings()
         {
             try
             {
-                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "llm_settings.json");
-                
-                if (File.Exists(settingsPath))
+                var legacySettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "llm_settings.json");
+                var settingsPathToRead = File.Exists(_settingsFilePath) ? _settingsFilePath : legacySettingsPath;
+
+                if (!File.Exists(settingsPathToRead))
                 {
-                    var settingsJson = await File.ReadAllTextAsync(settingsPath);
-                    var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(settingsJson);
-                    
-                    if (settings != null)
+                    SetModel(_currentModel);
+                    return;
+                }
+
+                var settingsJson = File.ReadAllText(settingsPathToRead);
+                var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(settingsJson);
+
+                if (settings != null)
+                {
+                    var apiKey = GetSettingAsString(settings, "ApiKey") ?? GetSettingAsString(settings, "LLM_ApiKey") ?? string.Empty;
+                    var endpoint = GetSettingAsString(settings, "Endpoint") ?? GetSettingAsString(settings, "LLM_Endpoint") ?? _endpoint;
+                    var model = GetSettingAsString(settings, "Model") ?? GetSettingAsString(settings, "LLM_Model") ?? _currentModel;
+                    var temperatureValue = GetSettingAsString(settings, "Temperature") ?? GetSettingAsString(settings, "LLM_Temperature");
+
+                    _apiKey = apiKey;
+                    _endpoint = endpoint;
+                    SetModel(model);
+
+                    if (!string.IsNullOrEmpty(temperatureValue) && double.TryParse(temperatureValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedTemperature))
                     {
-                        if (settings.ContainsKey("LLM_ApiKey") && settings["LLM_ApiKey"] != null)
-                            _apiKey = settings["LLM_ApiKey"]!.ToString() ?? string.Empty;
-                        
-                        if (settings.ContainsKey("LLM_Endpoint") && settings["LLM_Endpoint"] != null)
-                            _endpoint = settings["LLM_Endpoint"]!.ToString() ?? "https://api.openai.com/v1";
-                        
-                        if (settings.ContainsKey("LLM_Temperature") && settings["LLM_Temperature"] != null)
-                            _temperature = Convert.ToDouble(settings["LLM_Temperature"]);
+                        _temperature = parsedTemperature;
                     }
                 }
             }
@@ -338,18 +350,20 @@ namespace LLMOverlay
             {
                 var settings = new Dictionary<string, object>
                 {
-                    ["LLM_ApiKey"] = _apiKey,
-                    ["LLM_Endpoint"] = _endpoint,
-                    ["LLM_Temperature"] = _temperature
+                    ["ApiKey"] = _apiKey,
+                    ["Endpoint"] = _endpoint,
+                    ["Model"] = _currentModel,
+                    ["Temperature"] = _temperature
                 };
 
-                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
-                Directory.CreateDirectory(settingsPath);
-                
-                var settingsFile = Path.Combine(settingsPath, "llm_settings.json");
+                var settingsDirectory = Path.GetDirectoryName(_settingsFilePath);
+                if (!string.IsNullOrEmpty(settingsDirectory))
+                {
+                    Directory.CreateDirectory(settingsDirectory);
+                }
+
                 var settingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                
-                await File.WriteAllTextAsync(settingsFile, settingsJson);
+                await File.WriteAllTextAsync(_settingsFilePath, settingsJson);
             }
             catch (Exception ex)
             {
@@ -363,13 +377,13 @@ namespace LLMOverlay
             {
                 if (settings.ContainsKey("ApiKey") && !string.IsNullOrEmpty(settings["ApiKey"]))
                     _apiKey = settings["ApiKey"];
-                
+
                 if (settings.ContainsKey("Endpoint") && !string.IsNullOrEmpty(settings["Endpoint"]))
                     _endpoint = settings["Endpoint"];
-                
+
                 if (settings.ContainsKey("Model") && !string.IsNullOrEmpty(settings["Model"]))
                     SetModel(settings["Model"]);
-                
+
                 // Save the updated settings
                 _ = SaveSettings();
             }
@@ -377,6 +391,16 @@ namespace LLMOverlay
             {
                 System.Diagnostics.Debug.WriteLine($"Error updating settings: {ex.Message}");
             }
+        }
+
+        private string GetSettingAsString(Dictionary<string, object> settings, string key)
+        {
+            if (settings.ContainsKey(key) && settings[key] != null)
+            {
+                return settings[key]!.ToString();
+            }
+
+            return null;
         }
 
         public string GetApiKey() => _apiKey;

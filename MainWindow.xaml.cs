@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using LLMOverlay.Components;
 
 namespace LLMOverlay
 {
@@ -22,6 +23,7 @@ namespace LLMOverlay
         private double _originalMinWidth;
         private double _originalMinHeight;
         private const double TrayWidth = 50d;
+        private string _activeCharacterName = string.Empty;
         private readonly LLMService _llmService;
         private readonly ObservableCollection<ChatMessage> _messages;
         private readonly ObservableCollection<string> _recentAssistantSnippets = new();
@@ -59,16 +61,12 @@ namespace LLMOverlay
             _settingsEndpointInput = SettingsEndpointInput;
             _settingsModelComboBox = SettingsModelComboBox;
 
-             _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
-             _radialMenuWindow.Show();
-
-            UpdateCurrentModelDisplay();
-
             _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
             _radialMenuWindow.Show();
 
             InitializeChatInterface();
             LoadSettings();
+            UpdateCurrentModelDisplay();
 
             // Set window to be click-through when not in focus
             this.Deactivated += MainWindow_Deactivated;
@@ -218,6 +216,100 @@ namespace LLMOverlay
             }
         }
 
+        public void OpenCharacterManager()
+        {
+            var manager = new CharacterManager();
+            manager.CharacterSelected += OnCharacterSelected;
+            ShowComponentWindow(manager, 520, 640);
+        }
+
+        private void CharacterManagerButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenCharacterManager();
+        }
+
+        private void OnCharacterSelected(CharacterData character)
+        {
+            _activeCharacterName = character.Name;
+            AddSystemMessage($"Active character set to: {character.Name}");
+        }
+
+        public void OpenWorldInfo()
+        {
+            var worldInfo = new WorldInfo();
+            ShowComponentWindow(worldInfo, 520, 640);
+        }
+
+        private void WorldInfoButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenWorldInfo();
+        }
+
+        public void OpenSystemMonitor()
+        {
+            var monitor = new SystemMonitor();
+            ShowComponentWindow(monitor, 420, 500);
+        }
+
+        private void SystemMonitorButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenSystemMonitor();
+        }
+
+        private void SettingsQuickButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isMinimized)
+            {
+                ExpandFromTray(true);
+                return;
+            }
+
+            SettingsPanel.Visibility = Visibility.Visible;
+        }
+
+        private void ShowComponentWindow(UserControl control, double width, double height)
+        {
+            var window = new Window
+            {
+                ShowInTaskbar = true,
+                WindowStyle = WindowStyle.None,
+                AllowsTransparency = true,
+                Background = Brushes.Transparent,
+                Width = width,
+                Height = height,
+                Topmost = true
+            };
+
+            var border = new Border
+            {
+                CornerRadius = new CornerRadius(12),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1)
+            };
+
+            border.Background = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 1),
+                GradientStops = new GradientStopCollection
+                {
+                    new GradientStop((Color)ColorConverter.ConvertFromString("#E6000000"), 0),
+                    new GradientStop((Color)ColorConverter.ConvertFromString("#E6111111"), 1),
+                    new GradientStop((Color)ColorConverter.ConvertFromString("#22FFFFFF"), 0.5)
+                }
+            };
+
+            border.Child = control;
+            window.Content = border;
+
+            var workArea = SystemParameters.WorkArea;
+            var targetTop = workArea.Bottom - height - 80;
+            window.Left = workArea.Left + 12;
+            window.Top = targetTop < workArea.Top + 12 ? workArea.Top + 12 : targetTop;
+
+            window.Show();
+        }
+
          private async void SendButton_Click(object sender, RoutedEventArgs e)
          {
              await SendMessage();
@@ -230,11 +322,17 @@ namespace LLMOverlay
 
             // Change color based on character count
             if (textLength > 3500)
+            {
                 CharacterCounter.Foreground = new SolidColorBrush(Color.FromRgb(255, 100, 100));
+            }
             else if (textLength > 3000)
+            {
                 CharacterCounter.Foreground = new SolidColorBrush(Color.FromRgb(255, 200, 100));
+            }
             else
+            {
                 CharacterCounter.Foreground = new SolidColorBrush(Color.FromRgb(136, 255, 136));
+            }
         }
 
         private void MessageInputBox_KeyDown(object sender, KeyEventArgs e)
@@ -385,6 +483,11 @@ namespace LLMOverlay
             }
         }
 
+        private string GetSettingsFilePath()
+        {
+            return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
+        }
+
         private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
         {
             SaveSettings();
@@ -394,8 +497,7 @@ namespace LLMOverlay
         {
             try
             {
-                // Load settings from local storage
-                var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
+                var settingsPath = GetSettingsFilePath();
 
                 if (System.IO.File.Exists(settingsPath))
                 {
@@ -415,10 +517,20 @@ namespace LLMOverlay
                         }
 
                         _llmService.UpdateSettings(settings);
-                        UpdateCurrentModelDisplay();
                     }
                 }
 
+                if (string.IsNullOrWhiteSpace(SettingsApiKeyInput.Text))
+                {
+                    SettingsApiKeyInput.Text = _llmService.GetApiKey();
+                }
+
+                if (string.IsNullOrWhiteSpace(SettingsEndpointInput.Text))
+                {
+                    SettingsEndpointInput.Text = _llmService.GetEndpoint();
+                }
+
+                SelectModelInCombo(_llmService.GetCurrentModel());
                 UpdateCurrentModelDisplay();
             }
             catch (Exception ex)
@@ -439,10 +551,14 @@ namespace LLMOverlay
                     ["Model"] = modelName
                 };
 
-                var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
-                System.IO.Directory.CreateDirectory(settingsPath);
+                var settingsPath = GetSettingsFilePath();
+                var settingsDirectory = System.IO.Path.GetDirectoryName(settingsPath);
+                if (!string.IsNullOrEmpty(settingsDirectory))
+                {
+                    System.IO.Directory.CreateDirectory(settingsDirectory);
+                }
 
-                var settingsFile = System.IO.Path.Combine(settingsPath, "settings.json");
+                var settingsFile = settingsPath;
                 var settingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
 
                 System.IO.File.WriteAllText(settingsFile, settingsJson);

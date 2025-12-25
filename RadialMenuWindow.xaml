@@ -28,71 +28,65 @@
             </Border>
         </Button>
         <Popup x:Name="RadialMenuPopup"
-               Placement="Bottom"
+               Placement="Center"
                PlacementTarget="{Binding ElementName=RadialMenuButton}"
                AllowsTransparency="True"
                StaysOpen="False"
                PopupAnimation="Fade">
-            <Border CornerRadius="12"
-                    BorderBrush="#33FFFFFF"
-                    BorderThickness="1"
-                    Padding="12"
-                    Width="260">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#E6000000" Offset="0"/>
-                        <GradientStop Color="#E6111111" Offset="1"/>
-                        <GradientStop Color="#22FFFFFF" Offset="0.5"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <StackPanel>
-                    <TextBlock Text="Quick Access"
-                               FontWeight="SemiBold"
-                               FontSize="14"
-                               Foreground="White"
-                               Margin="0,0,0,8"/>
-                    <StackPanel Margin="0,0,0,8">
-                        <TextBlock Text="Recent AI contacts"
-                                   Foreground="#CCFFFFFF"
-                                   FontSize="12"/>
-                        <ItemsControl x:Name="RecentContactsList"
-                                      Margin="0,4,0,0">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="White" FontSize="12"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock x:Name="NoContactsText"
-                                   Text="No AI responses yet"
-                                   Foreground="#88FFFFFF"
-                                   FontSize="12"
-                                   Margin="0,4,0,0"
-                                   Visibility="Collapsed"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,8">
-                        <TextBlock Text="Current model"
-                                   Foreground="#CCFFFFFF"
-                                   FontSize="12"/>
-                        <TextBlock x:Name="CurrentModelText"
-                                   Foreground="White"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"
-                                   Margin="0,4,0,0"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="LoadModelButton"
-                                Content="Load Model"
-                                Padding="10,4"
-                                Margin="0,0,8,0"
-                                Click="LoadModelButton_Click"/>
-                        <Button x:Name="CreatePersonaButton"
-                                Content="Create Persona"
-                                Padding="10,4"
-                                Click="CreatePersonaButton_Click"/>
-                    </StackPanel>
+            <Grid Width="260" Height="260">
+                <Grid.Resources>
+                    <Style x:Key="RadialActionButtonStyle" TargetType="Button">
+                        <Setter Property="Width" Value="56"/>
+                        <Setter Property="Height" Value="56"/>
+                        <Setter Property="Background" Value="#22FFFFFF"/>
+                        <Setter Property="BorderBrush" Value="#55FFFFFF"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="28">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Grid.Resources>
+
+                <Ellipse Fill="#AA000000" Stroke="#33FFFFFF" StrokeThickness="1"/>
+                <Canvas>
+                    <Button Style="{StaticResource RadialActionButtonStyle}"
+                            Content="??"
+                            ToolTip="Open chat"
+                            Canvas.Left="102" Canvas.Top="14"
+                            Click="OpenChatButton_Click"/>
+                    <Button Style="{StaticResource RadialActionButtonStyle}"
+                            Content="??"
+                            ToolTip="Character manager"
+                            Canvas.Left="24" Canvas.Top="82"
+                            Click="OpenCharacterButton_Click"/>
+                    <Button Style="{StaticResource RadialActionButtonStyle}"
+                            Content="??"
+                            ToolTip="World info"
+                            Canvas.Left="180" Canvas.Top="82"
+                            Click="OpenWorldInfoButton_Click"/>
+                    <Button Style="{StaticResource RadialActionButtonStyle}"
+                            Content="??"
+                            ToolTip="System monitor"
+                            Canvas.Left="46" Canvas.Top="178"
+                            Click="OpenSystemMonitorButton_Click"/>
+                    <Button Style="{StaticResource RadialActionButtonStyle}"
+                            Content="??"
+                            ToolTip="Settings"
+                            Canvas.Left="158" Canvas.Top="178"
+                            Click="OpenSettingsButton_Click"/>
+                </Canvas>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,12">
+                    <TextBlock Text="Quick Actions" FontWeight="SemiBold" FontSize="14" Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="CurrentModelText" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock x:Name="RecentSnippetText" Foreground="#CCFFFFFF" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" Width="200" Margin="0,4,0,0"/>
                 </StackPanel>
-            </Border>
+            </Grid>
         </Popup>
     </Grid>
 </Window>

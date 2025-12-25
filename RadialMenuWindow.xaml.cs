@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -18,11 +19,10 @@ namespace LLMOverlay
             _service = service;
             _recent = recent;
 
-            RecentContactsList.ItemsSource = _recent;
             UpdateCurrentModel();
-            UpdateContactsVisibility();
+            UpdateRecentSnippet();
 
-            _recent.CollectionChanged += (_, __) => UpdateContactsVisibility();
+            _recent.CollectionChanged += (_, __) => UpdateRecentSnippet();
             Loaded += RadialMenuWindow_Loaded;
             Deactivated += (_, __) => RadialMenuPopup.IsOpen = false;
         }
@@ -34,34 +34,59 @@ namespace LLMOverlay
             Top = workArea.Top + 8;
         }
 
-        private void UpdateContactsVisibility()
-        {
-            NoContactsText.Visibility = _recent.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
-
         public void UpdateCurrentModel()
         {
             CurrentModelText.Text = _service.GetCurrentModel();
         }
 
+        private void UpdateRecentSnippet()
+        {
+            if (_recent.Count == 0)
+            {
+                RecentSnippetText.Text = "No AI responses yet";
+                RecentSnippetText.Opacity = 0.7;
+                return;
+            }
+
+            RecentSnippetText.Text = _recent.Last();
+            RecentSnippetText.Opacity = 1;
+        }
+
         private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
         {
             UpdateCurrentModel();
-            UpdateContactsVisibility();
+            UpdateRecentSnippet();
             RadialMenuPopup.IsOpen = true;
         }
 
-        private void LoadModelButton_Click(object sender, RoutedEventArgs e)
-        {
-            RadialMenuPopup.IsOpen = false;
-            _main.ShowFromRadial(showSettingsPanel: true);
-        }
-
-        private void CreatePersonaButton_Click(object sender, RoutedEventArgs e)
+        private void OpenChatButton_Click(object sender, RoutedEventArgs e)
         {
             RadialMenuPopup.IsOpen = false;
             _main.ShowFromRadial(showSettingsPanel: false);
-            _main.ShowPersonaComingSoon();
+        }
+
+        private void OpenCharacterButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenCharacterManager();
+        }
+
+        private void OpenWorldInfoButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenWorldInfo();
+        }
+
+        private void OpenSystemMonitorButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenSystemMonitor();
+        }
+
+        private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.ShowFromRadial(showSettingsPanel: true);
         }
     }
 }
