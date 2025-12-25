@@ -310,11 +310,11 @@ namespace LLMOverlay
             try
             {
                 // Load settings from local storage
-                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
+                var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "settings.json");
                 
-                if (File.Exists(settingsPath))
+                if (System.IO.File.Exists(settingsPath))
                 {
-                    var settingsJson = File.ReadAllText(settingsPath);
+                    var settingsJson = System.IO.File.ReadAllText(settingsPath);
                     var settings = JsonConvert.DeserializeObject<Dictionary<string, string>>(settingsJson);
                     
                     if (settings != null)
@@ -347,13 +347,13 @@ namespace LLMOverlay
                     ["Model"] = SettingsModelComboBox.SelectedItem?.ToString() ?? "gpt-3.5-turbo"
                 };
 
-                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
-                Directory.CreateDirectory(settingsPath);
+                var settingsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
+                System.IO.Directory.CreateDirectory(settingsPath);
                 
-                var settingsFile = Path.Combine(settingsPath, "settings.json");
+                var settingsFile = System.IO.Path.Combine(settingsPath, "settings.json");
                 var settingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 
-                File.WriteAllText(settingsFile, settingsJson);
+                System.IO.File.WriteAllText(settingsFile, settingsJson);
                 
                 // Update LLM service with new settings
                 _llmService.UpdateSettings(settings);
