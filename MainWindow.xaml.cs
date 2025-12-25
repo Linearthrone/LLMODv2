@@ -21,7 +21,7 @@ namespace LLMOverlay
         private double _expandedWidth;
         private double _originalMinWidth;
         private double _originalMinHeight;
-        private const double TrayWidth = 72d;
+        private const double TrayWidth = 50d;
         private readonly LLMService _llmService;
         private readonly ObservableCollection<ChatMessage> _messages;
         private readonly ObservableCollection<string> _recentAssistantSnippets = new();

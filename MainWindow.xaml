@@ -180,7 +180,7 @@
         
         <!-- Minimized Vertical Bar (Always Visible Tray) -->
         <Border x:Name="MinimizedTray"
-                Width="72"
+                Width="50"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Stretch"
                 Panel.ZIndex="10"

@@ -8,15 +8,15 @@
         Background="Transparent"
         ShowInTaskbar="False"
         Topmost="True"
-        Width="72"
-        Height="72">
+        Width="140"
+        Height="140">
     <Grid>
         <Button x:Name="RadialMenuButton"
-                Width="48" Height="48"
+                Width="96" Height="96"
                 Background="Transparent"
                 BorderThickness="0"
                 Click="RadialMenuButton_Click">
-            <Border Width="48" Height="48" CornerRadius="24" BorderBrush="#33FFFFFF" BorderThickness="1">
+            <Border Width="96" Height="96" CornerRadius="48" BorderBrush="#33FFFFFF" BorderThickness="1">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="#E6000000" Offset="0"/>
