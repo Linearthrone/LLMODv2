@@ -1,4 +1,4 @@
-# LLM Desktop Overlay - WinUI 3 Chat Interface (Windows 11)
+# LLM Desktop Overlay - WPF Chat Interface (Windows)
 
 A modern, feature-rich desktop overlay application for interacting with Large Language Models (LLMs) directly from your Windows 11 desktop. This overlay provides a sleek chat interface with Windows 11 design language, stays on top of other applications, and minimizes to a floating button when not in use.
 
@@ -35,17 +35,15 @@ A modern, feature-rich desktop overlay application for interacting with Large La
 ## Requirements
 
 ### System Requirements
-- **Windows 11 version 22000** or higher (required)
+- **Windows 10 version 1903** or higher (Windows 10/11 compatible)
 - **.NET 8.0 Runtime** or higher
-- **Windows App SDK 1.6** or higher
-- **DirectX 12** compatible graphics card
+- **DirectX 9** compatible graphics card
 
 ### Development Requirements
-- **Visual Studio 2022** (17.8 or higher) with:
+- **Visual Studio 2022** or **Visual Studio 2019** with:
   - .NET desktop development workload
-  - Windows application development workload
-  - Windows 11 SDK (10.0.22621.0 or higher)
-- **Windows 11** development environment
+  - WPF development support
+- **Windows 10 or 11** development environment
 
 ## Installation
 

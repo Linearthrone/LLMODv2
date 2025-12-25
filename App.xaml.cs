@@ -1,11 +1,10 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace LLMOverlay
 {
-    public sealed partial class App : Application
+    public partial class App : Application
     {
         public Window? MainWindow { get; private set; }
 
@@ -14,19 +13,20 @@ namespace LLMOverlay
             this.InitializeComponent();
         }
 
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
             MainWindow = new MainWindow();
-            MainWindow.Activate();
+            MainWindow.Show();
         }
 
-        protected override void OnActivated(IActivatedEventArgs args)
+        protected override void OnActivated(EventArgs e)
         {
-            base.OnActivated(args);
+            base.OnActivated(e);
             if (MainWindow == null)
             {
                 MainWindow = new MainWindow();
-                MainWindow.Activate();
+                MainWindow.Show();
             }
         }
     }

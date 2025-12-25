@@ -1,14 +1,29 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace LLMOverlay
 {
+    public class ChatMessage
+    {
+        public string Sender { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class MediaAttachment
+    {
+        public string FilePath { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string FileType { get; set; } = string.Empty;
+    }
+
     public class LLMService
     {
         private readonly HttpClient _httpClient;
@@ -17,11 +32,13 @@ namespace LLMOverlay
         private string _endpoint = "https://api.openai.com/v1";
         private double _temperature = 0.7;
         private readonly List<ChatMessage> _conversationHistory;
+        private readonly List<MediaAttachment> _mediaAttachments;
 
         public LLMService()
         {
             _httpClient = new HttpClient();
             _conversationHistory = new List<ChatMessage>();
+            _mediaAttachments = new List<MediaAttachment>();
             LoadSettings();
         }
 
@@ -47,7 +64,7 @@ namespace LLMOverlay
             }
         }
 
-        public async Task<string> SendMessageAsync(string message, List<MediaAttachment> attachments = null)
+        public async Task<string> SendMessageAsync(string message, string attachments = null)
         {
             try
             {
@@ -56,7 +73,7 @@ namespace LLMOverlay
                 {
                     Sender = "user",
                     Content = message,
-                    Timestamp = DateTime.Now.ToString("HH:mm")
+                    Timestamp = DateTime.Now
                 });
 
                 // Process attachments if any
@@ -75,7 +92,7 @@ namespace LLMOverlay
                 {
                     Sender = "assistant",
                     Content = response,
-                    Timestamp = DateTime.Now.ToString("HH:mm")
+                    Timestamp = DateTime.Now
                 });
 
                 // Keep only last 10 messages in history
@@ -92,45 +109,51 @@ namespace LLMOverlay
             }
         }
 
-        private async Task<string> ProcessAttachments(string message, List<MediaAttachment> attachments)
+        private async Task<string> ProcessAttachments(string message, string attachmentPaths)
         {
-            if (attachments == null || attachments.Count == 0)
+            if (string.IsNullOrEmpty(attachmentPaths))
                 return message;
 
+            var attachmentList = attachmentPaths.Split(',').Select(p => p.Trim()).ToList();
             var processedBuilder = new StringBuilder(message);
             processedBuilder.AppendLine();
 
-            foreach (var attachment in attachments)
+            foreach (var attachmentPath in attachmentList)
             {
                 try
                 {
-                    if (IsImageFile(attachment.FileType))
+                    string fileType = Path.GetExtension(attachmentPath);
+                    string fileName = Path.GetFileName(attachmentPath);
+
+                    if (IsImageFile(fileType))
                     {
-                        processedBuilder.AppendLine($"[Image: {attachment.FileName}]");
+                        processedBuilder.AppendLine($"[Image: {fileName}]");
                     }
-                    else if (attachment.FileType.ToLower() == ".txt")
+                    else if (fileType.Equals(".txt", StringComparison.OrdinalIgnoreCase))
                     {
                         // Read text file content
-                        var file = await StorageFile.GetFileFromPathAsync(attachment.FilePath);
-                        var content = await FileIO.ReadTextAsync(file);
-                        processedBuilder.AppendLine();
-                        processedBuilder.AppendLine($"--- Content of {attachment.FileName} ---");
-                        processedBuilder.AppendLine(content);
-                        processedBuilder.AppendLine("--- End of file content ---");
+                        if (File.Exists(attachmentPath))
+                        {
+                            var content = await File.ReadAllTextAsync(attachmentPath);
+                            processedBuilder.AppendLine();
+                            processedBuilder.AppendLine($"--- Content of {fileName} ---");
+                            processedBuilder.AppendLine(content);
+                            processedBuilder.AppendLine("--- End of file content ---");
+                        }
                     }
-                    else if (attachment.FileType.ToLower() == ".pdf")
+                    else if (fileType.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
                     {
-                        processedBuilder.AppendLine($"[PDF Document: {attachment.FileName}]");
+                        processedBuilder.AppendLine($"[PDF Document: {fileName}]");
                         // Note: PDF processing would require additional libraries
                     }
                     else
                     {
-                        processedBuilder.AppendLine($"[File: {attachment.FileName}]");
+                        processedBuilder.AppendLine($"[File: {fileName}]");
                     }
                 }
                 catch (Exception ex)
                 {
-                    processedBuilder.AppendLine($"[Error processing {attachment.FileName}: {ex.Message}]");
+                    processedBuilder.AppendLine($"[Error processing attachment: {ex.Message}]");
                 }
             }
 
@@ -236,16 +259,25 @@ namespace LLMOverlay
         {
             try
             {
-                var localSettings = ApplicationData.Current.LocalSettings;
+                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "llm_settings.json");
                 
-                if (localSettings.Values.TryGetValue("LLM_ApiKey", out var apiKey))
-                    _apiKey = apiKey.ToString();
-                
-                if (localSettings.Values.TryGetValue("LLM_Endpoint", out var endpoint))
-                    _endpoint = endpoint.ToString();
-                
-                if (localSettings.Values.TryGetValue("LLM_Temperature", out var temperature))
-                    _temperature = Convert.ToDouble(temperature);
+                if (File.Exists(settingsPath))
+                {
+                    var settingsJson = await File.ReadAllTextAsync(settingsPath);
+                    var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(settingsJson);
+                    
+                    if (settings != null)
+                    {
+                        if (settings.ContainsKey("LLM_ApiKey") && settings["LLM_ApiKey"] != null)
+                            _apiKey = settings["LLM_ApiKey"]!.ToString() ?? string.Empty;
+                        
+                        if (settings.ContainsKey("LLM_Endpoint") && settings["LLM_Endpoint"] != null)
+                            _endpoint = settings["LLM_Endpoint"]!.ToString() ?? "https://api.openai.com/v1";
+                        
+                        if (settings.ContainsKey("LLM_Temperature") && settings["LLM_Temperature"] != null)
+                            _temperature = Convert.ToDouble(settings["LLM_Temperature"]);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -257,14 +289,46 @@ namespace LLMOverlay
         {
             try
             {
-                var localSettings = ApplicationData.Current.LocalSettings;
-                localSettings.Values["LLM_ApiKey"] = _apiKey;
-                localSettings.Values["LLM_Endpoint"] = _endpoint;
-                localSettings.Values["LLM_Temperature"] = _temperature;
+                var settings = new Dictionary<string, object>
+                {
+                    ["LLM_ApiKey"] = _apiKey,
+                    ["LLM_Endpoint"] = _endpoint,
+                    ["LLM_Temperature"] = _temperature
+                };
+
+                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay");
+                Directory.CreateDirectory(settingsPath);
+                
+                var settingsFile = Path.Combine(settingsPath, "llm_settings.json");
+                var settingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
+                
+                await File.WriteAllTextAsync(settingsFile, settingsJson);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Failed to save settings: {ex.Message}");
+            }
+        }
+
+        public void UpdateSettings(Dictionary<string, string> settings)
+        {
+            try
+            {
+                if (settings.ContainsKey("ApiKey") && !string.IsNullOrEmpty(settings["ApiKey"]))
+                    _apiKey = settings["ApiKey"];
+                
+                if (settings.ContainsKey("Endpoint") && !string.IsNullOrEmpty(settings["Endpoint"]))
+                    _endpoint = settings["Endpoint"];
+                
+                if (settings.ContainsKey("Model") && !string.IsNullOrEmpty(settings["Model"]))
+                    SetModel(settings["Model"]);
+                
+                // Save the updated settings
+                _ = SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating settings: {ex.Message}");
             }
         }
 
@@ -282,36 +346,36 @@ namespace LLMOverlay
 
         private class OpenAIResponse
         {
-            public List<OpenAIChoice> Choices { get; set; } = new List<OpenAIChoice>();
+            public List<OpenAIChoice>? Choices { get; set; }
         }
 
         private class OpenAIChoice
         {
-            public OpenAIMessage Message { get; set; } = new OpenAIMessage();
+            public OpenAIMessage? Message { get; set; }
         }
 
         private class OpenAIMessage
         {
-            public string Content { get; set; } = string.Empty;
+            public string? Content { get; set; }
         }
 
         private class ClaudeResponse
         {
-            public List<ClaudeContent> Content { get; set; } = new List<ClaudeContent>();
+            public List<ClaudeContent>? Content { get; set; }
         }
 
         private class ClaudeContent
         {
-            public string Text { get; set; } = string.Empty;
+            public string? Text { get; set; }
         }
 
         #endregion
     }
 
-    // Extension method for Contains in LLMService
+    // Extension method for Contains
     public static class StringExtensions
     {
-        public static bool Contains(this string source, string value, StringComparison comparisonType)
+        public static bool Contains(this string? source, string value, StringComparison comparisonType)
         {
             return source?.IndexOf(value, comparisonType) >= 0;
         }

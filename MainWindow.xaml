@@ -1,11 +1,217 @@
 <Window x:Class="LLMOverlay.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="LLM Overlay">
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LLMOverlay"
+        Title="LLM Chat Overlay"
+        
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        
+        MinWidth="350"
+        MinHeight="500"
+        
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        
+        Loaded="Window_Loaded"
+        MouseDown="Window_MouseDown"
+        SizeChanged="Window_SizeChanged">
 
-	<Grid>
-		<TextBlock Text="Hello World"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-	</Grid>
-</Window> 
+    <Grid x:Name="RootGrid">
+        <!-- Main Content Area -->
+        <Grid x:Name="MainContentGrid" 
+              Visibility="Visible"
+              Width="{Binding ActualWidth, ElementName=RootGrid}"
+              HorizontalAlignment="Right">
+            
+            <!-- Background with Glass Effect -->
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#E6000000" Offset="0"/>
+                    <GradientStop Color="#E6111111" Offset="1"/>
+                    <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            
+            <Border BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="12">
+                <Border BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="11">
+                    <Grid Margin="2">
+                        <!-- Title Bar -->
+                        <Grid x:Name="TitleBar" Height="40" VerticalAlignment="Top" Background="#11000000">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- App Icon and Title -->
+                            <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="12,0,0,0">
+                                <TextBlock Text="🤖" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="LLM Overlay" 
+                                           FontFamily="Segoe UI" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Foreground="#FFFFFFFF"/>
+                            </StackPanel>
+                            
+                            <!-- Window Controls -->
+                            <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="0,0,8,0">
+                                <Button x:Name="MinimizeButton" 
+                                        Content="−" 
+                                        Width="32" Height="32" 
+                                        Margin="2"
+                                        Background="Transparent" 
+                                        BorderThickness="0"
+                                        Foreground="#FFFFFFFF"
+                                        FontSize="16"
+                                        Click="MinimizeButton_Click"/>
+                                <Button x:Name="CloseButton" 
+                                        Content="✕" 
+                                        Width="32" Height="32" 
+                                        Margin="2"
+                                        Background="Transparent" 
+                                        BorderThickness="0"
+                                        Foreground="#FFFFFFFF"
+                                        FontSize="16"
+                                        Click="CloseButton_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Main Content -->
+                        <Grid Margin="0,40,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Settings Panel -->
+                            <Grid x:Name="SettingsPanel" Grid.Row="0" Margin="16,12" Visibility="Collapsed">
+                                <Border Background="#44000000" CornerRadius="8" Padding="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Settings" FontSize="16" FontWeight="Bold" Foreground="#FFFFFFFF" Margin="0,0,0,12"/>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <TextBlock Text="API Key:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="#FFFFFFFF" Margin="0,0,8,8"/>
+                                            <TextBox x:Name="SettingsApiKeyInput" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"/>
+                                            
+                                            <TextBlock Text="Endpoint:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="#FFFFFFFF" Margin="0,0,8,8"/>
+                                            <TextBox x:Name="SettingsEndpointInput" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
+                                            
+                                            <TextBlock Text="Model:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Foreground="#FFFFFFFF" Margin="0,0,8,8"/>
+                                            <ComboBox x:Name="SettingsModelComboBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                                                <ComboBoxItem Content="gpt-3.5-turbo"/>
+                                                <ComboBoxItem Content="gpt-4"/>
+                                                <ComboBoxItem Content="claude-3"/>
+                                                <ComboBoxItem Content="local"/>
+                                            </ComboBox>
+                                            
+                                            <Button x:Name="SaveSettingsButton" Content="Save Settings" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Margin="0,8,0,0" Click="SaveSettingsButton_Click"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            
+                            <!-- Chat Messages Area -->
+                            <ScrollViewer x:Name="ChatScrollViewer" Grid.Row="1" Margin="16,8" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="MessagesPanel" Orientation="Vertical"/>
+                            </ScrollViewer>
+                            
+                            <!-- Input Area -->
+                            <Grid x:Name="InputPanel" Grid.Row="2" Margin="16,8,16,16">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Character Counter -->
+                                <TextBlock x:Name="CharacterCounter" 
+                                           Grid.Row="0" 
+                                           Text="0 / 4000" 
+                                           HorizontalAlignment="Right" 
+                                           Foreground="#88FFFFFF" 
+                                           FontSize="12" 
+                                           Margin="0,0,0,4"/>
+                                
+                                <!-- Input Box and Send Button -->
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBox x:Name="MessageInputBox" 
+                                             Grid.Column="0"
+                                             Height="60" 
+                                             TextWrapping="Wrap" 
+                                             AcceptsReturn="True"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Margin="0,0,8,0"
+                                             TextChanged="MessageInputBox_TextChanged"
+                                             KeyDown="MessageInputBox_KeyDown"/>
+                                    
+                                    <Button x:Name="SendButton" 
+                                            Grid.Column="1"
+                                            Width="60" Height="60" 
+                                            Content="➤" 
+                                            FontSize="20"
+                                            Click="SendButton_Click"/>
+                                </Grid>
+                                
+                                <!-- Settings Toggle -->
+                                <Button x:Name="SettingsToggleButton" 
+                                        Grid.Row="1"
+                                        Content="⚙️" 
+                                        Width="30" Height="30" 
+                                        HorizontalAlignment="Left" 
+                                        VerticalAlignment="Bottom"
+                                        Margin="0,0,0,30"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="SettingsToggleButton_Click"/>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Border>
+        </Grid>
+        
+        <!-- Minimized Floating Button -->
+        <Button x:Name="FloatingButton"
+                Width="50" Height="50"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,10,10,0"
+                Background="#E61E40AF"
+                BorderBrush="#33FFFFFF"
+                BorderThickness="1"
+                Foreground="#FFFFFFFF"
+                FontSize="20"
+                Content="🤖"
+                Visibility="Collapsed"
+                Click="FloatingButton_Click">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="25">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </Grid>
+</Window>
