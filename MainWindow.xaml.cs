@@ -622,10 +622,10 @@ namespace LLMOverlay
 
         private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
         {
-            ShowRadialMenu();
+            ShowRadialMenu(sender as FrameworkElement);
         }
 
-        private void ShowRadialMenu()
+        private void ShowRadialMenu(FrameworkElement? anchor = null)
         {
             if (_radialMenuWindow == null || !_radialMenuWindow.IsLoaded)
             {
@@ -634,8 +634,36 @@ namespace LLMOverlay
             }
 
             var workArea = SystemParameters.WorkArea;
-            _radialMenuWindow.Left = workArea.Right - _radialMenuWindow.Width - TrayWidth - 10;
-            _radialMenuWindow.Top = workArea.Bottom - _radialMenuWindow.Height - 60;
+            var menuWidth = _radialMenuWindow.ActualWidth > 0 ? _radialMenuWindow.ActualWidth : _radialMenuWindow.Width;
+            var menuHeight = _radialMenuWindow.ActualHeight > 0 ? _radialMenuWindow.ActualHeight : _radialMenuWindow.Height;
+
+            double left;
+            double top;
+
+            if (anchor != null)
+            {
+                var anchorCenter = anchor.TranslatePoint(new Point(anchor.ActualWidth / 2, anchor.ActualHeight / 2), this);
+                var screenPoint = PointToScreen(anchorCenter);
+                var source = PresentationSource.FromVisual(this);
+                if (source?.CompositionTarget != null)
+                {
+                    screenPoint = source.CompositionTarget.TransformFromDevice.Transform(screenPoint);
+                }
+
+                left = screenPoint.X - (menuWidth / 2);
+                top = screenPoint.Y - (menuHeight / 2);
+            }
+            else
+            {
+                left = workArea.Right - menuWidth - TrayWidth - 10;
+                top = workArea.Bottom - menuHeight - 60;
+            }
+
+            left = Math.Max(workArea.Left, Math.Min(left, workArea.Right - menuWidth));
+            top = Math.Max(workArea.Top, Math.Min(top, workArea.Bottom - menuHeight));
+
+            _radialMenuWindow.Left = left;
+            _radialMenuWindow.Top = top;
 
             if (!_radialMenuWindow.IsVisible)
             {
