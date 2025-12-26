@@ -11,7 +11,7 @@ namespace LLMOverlay
     public partial class CreateContactWindow : Window
     {
         private Contact _contact;
-        private string _selectedAvatarPath;
+        private string? _selectedAvatarPath;
 
         public CreateContactWindow()
         {
@@ -56,7 +56,7 @@ namespace LLMOverlay
                 _contact.Personality = PersonalityTextBox.Text.Trim();
                 _contact.Skills = SkillsTextBox.Text.Trim();
                 _contact.SystemPrompt = SystemPromptTextBox.Text.Trim();
-                _contact.AvatarPath = _selectedAvatarPath;
+                _contact.AvatarPath = _selectedAvatarPath ?? string.Empty;
 
                 try
                 {

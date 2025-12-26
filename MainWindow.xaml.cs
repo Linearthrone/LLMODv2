@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using LLMOverlay.Models;
+using LLMOverlay.Components;
 
 namespace LLMOverlay
 {
@@ -64,8 +66,7 @@ namespace LLMOverlay
             _settingsEndpointInput = SettingsEndpointInput;
             _settingsModelComboBox = SettingsModelComboBox;
 
-            _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
-            _radialMenuWindow.Show();
+            _radialMenuWindow = new RadialMenuWindow(this);
 
             InitializeChatInterface();
             LoadSettings();
@@ -131,7 +132,7 @@ namespace LLMOverlay
             // Update layout when window size changes
         }
 
-        private void MainWindow_Deactivated(object sender, EventArgs e)
+        private void MainWindow_Deactivated(object? sender, EventArgs e)
         {
             // Minimize to tray when window loses focus
             MinimizeToTray();
@@ -601,20 +602,6 @@ namespace LLMOverlay
             AddSystemMessage("Persona creation: configure prompts and save presets (ollama or HuggingFace). Coming soon.");
         }
 
-        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Open radial menu at the button position
-            var button = (Button)sender;
-            var position = button.PointToScreen(new Point(0, 0));
-            
-            _radialMenuWindow = new RadialMenuWindow();
-            _radialMenuWindow.Owner = this;
-            _radialMenuWindow.SetMainWindow(this);
-            _radialMenuWindow.Left = position.X - 100; // Center horizontally on button
-            _radialMenuWindow.Top = position.Y - 200;  // Position above button
-            _radialMenuWindow.Show();
-        }
-
         public void LoadContact(Contact contact)
         {
             // Load the contact into the chat interface
@@ -631,6 +618,33 @@ namespace LLMOverlay
         {
             base.OnClosed(e);
             _radialMenuWindow?.Close();
+        }
+
+        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowRadialMenu();
+        }
+
+        private void ShowRadialMenu()
+        {
+            if (_radialMenuWindow == null || !_radialMenuWindow.IsLoaded)
+            {
+                _radialMenuWindow = new RadialMenuWindow(this);
+                _radialMenuWindow.Closed += (_, __) => _radialMenuWindow = null;
+            }
+
+            var workArea = SystemParameters.WorkArea;
+            _radialMenuWindow.Left = workArea.Right - _radialMenuWindow.Width - TrayWidth - 10;
+            _radialMenuWindow.Top = workArea.Bottom - _radialMenuWindow.Height - 60;
+
+            if (!_radialMenuWindow.IsVisible)
+            {
+                _radialMenuWindow.Show();
+            }
+            else
+            {
+                _radialMenuWindow.Activate();
+            }
         }
     }
 }

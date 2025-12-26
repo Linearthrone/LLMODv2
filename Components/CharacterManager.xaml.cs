@@ -13,7 +13,7 @@ namespace LLMOverlay.Components
     public partial class CharacterManager : UserControl
     {
         public ObservableCollection<CharacterData> Characters { get; set; }
-        public event Action<CharacterData> CharacterSelected;
+        public event Action<CharacterData>? CharacterSelected;
         
         public CharacterManager()
         {

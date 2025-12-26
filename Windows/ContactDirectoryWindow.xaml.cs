@@ -11,8 +11,8 @@ namespace LLMOverlay
 {
     public partial class ContactDirectoryWindow : Window
     {
-        private ObservableCollection<Contact> _contacts;
-        private ObservableCollection<Contact> _filteredContacts;
+        private ObservableCollection<Contact> _contacts = new ObservableCollection<Contact>();
+        private ObservableCollection<Contact> _filteredContacts = new ObservableCollection<Contact>();
 
         public ContactDirectoryWindow()
         {
@@ -90,7 +90,12 @@ namespace LLMOverlay
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
-            var contactId = button.Tag.ToString();
+            var contactId = button.Tag?.ToString();
+            if (string.IsNullOrEmpty(contactId))
+            {
+                return;
+            }
+
             var contact = ContactManager.GetContactById(contactId);
             
             if (contact != null)
@@ -106,7 +111,12 @@ namespace LLMOverlay
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
-            var contactId = button.Tag.ToString();
+            var contactId = button.Tag?.ToString();
+            if (string.IsNullOrEmpty(contactId))
+            {
+                return;
+            }
+
             var contact = ContactManager.GetContactById(contactId);
             
             if (contact != null)

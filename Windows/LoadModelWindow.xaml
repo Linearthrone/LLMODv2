@@ -179,6 +179,17 @@
                                                    Foreground="#AAAAAA" 
                                                    Margin="5"/>
                                     </GroupBox>
+                                    
+                                    <!-- Ollama pull and local browse -->
+                                    <StackPanel x:Name="OllamaPullPanel" Orientation="Horizontal" Margin="0,8,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="Model:" VerticalAlignment="Center" Foreground="White" Width="100"/>
+                                        <TextBox x:Name="OllamaModelNameTextBox" Width="200" Margin="0,0,6,0" Background="#40000000" Foreground="White" BorderBrush="#66FFFFFF" BorderThickness="1" Padding="5"/>
+                                        <Button x:Name="OllamaPullButton" Content="Pull with ollama" Width="140" Height="30" Background="#409B59B6" Foreground="White" BorderThickness="0" Click="OllamaPullButton_Click"/>
+                                    </StackPanel>
+                                    <StackPanel x:Name="LocalBrowsePanel" Orientation="Horizontal" Margin="0,8,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="Local model:" VerticalAlignment="Center" Foreground="White" Width="100"/>
+                                        <Button x:Name="BrowseLocalModelButton" Content="Browse file" Width="100" Height="30" Background="#40FFA07A" Foreground="White" BorderThickness="0" Click="BrowseLocalModelButton_Click"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
                         </TabItem>

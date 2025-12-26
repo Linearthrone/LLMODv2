@@ -5,19 +5,19 @@ namespace LLMOverlay.Models
 {
     public class Contact
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string BaseModel { get; set; }
-        public string PhysicalDescription { get; set; }
-        public string Personality { get; set; }
-        public string Skills { get; set; }
-        public string SystemPrompt { get; set; }
-        public string AvatarPath { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Name { get; set; } = string.Empty;
+        public string BaseModel { get; set; } = string.Empty;
+        public string PhysicalDescription { get; set; } = string.Empty;
+        public string Personality { get; set; } = string.Empty;
+        public string Skills { get; set; } = string.Empty;
+        public string SystemPrompt { get; set; } = string.Empty;
+        public string AvatarPath { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime LastActive { get; set; }
-        public Dictionary<string, object> ModelParameters { get; set; }
-        public string ApiEndpoint { get; set; }
-        public string ApiKey { get; set; }
+        public Dictionary<string, object> ModelParameters { get; set; } = new Dictionary<string, object>();
+        public string ApiEndpoint { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
         
         public string AvatarDisplay 
         { 
