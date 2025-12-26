@@ -9,6 +9,33 @@
         Topmost="True"
         ShowInTaskbar="False">
     
+    <Window.Resources>
+        <!-- Rounded Button Template -->
+        <Style x:Key="RoundedButton" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="25">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
     <Grid>
         <!-- Background with Glass Effect -->
         <Grid.Background>
@@ -28,12 +55,8 @@
                             Background="#40000000"
                             BorderBrush="#66FFFFFF"
                             BorderThickness="1"
+                            Style="{StaticResource RoundedButton}"
                             Click="CenterButton_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="25"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="❌" FontSize="20" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -47,12 +70,8 @@
                             Margin="0,-100,0,0"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
+                            Style="{StaticResource RoundedButton}"
                             Click="LastContact1Button_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="22"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="👤" FontSize="18" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -65,12 +84,8 @@
                             Margin="0,-70,70,35"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
+                            Style="{StaticResource RoundedButton}"
                             Click="LastContact2Button_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="22"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="👥" FontSize="18" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -83,12 +98,8 @@
                             Margin="0,0,100,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
+                            Style="{StaticResource RoundedButton}"
                             Click="ContactDirectoryButton_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="22"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="📇" FontSize="18" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -101,12 +112,8 @@
                             Margin="0,70,70,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
+                            Style="{StaticResource RoundedButton}"
                             Click="LoadModelButton_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="22"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="🤖" FontSize="18" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
@@ -119,12 +126,8 @@
                             Margin="0,100,0,0"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
+                            Style="{StaticResource RoundedButton}"
                             Click="CreateContactButton_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="22"/>
-                            </Style>
-                        </Button.Resources>
                         <TextBlock Text="➕" FontSize="18" Foreground="White" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
