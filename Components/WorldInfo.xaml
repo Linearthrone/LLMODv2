@@ -1,0 +1,131 @@
+<UserControl x:Class="LLMOverlay.Components.WorldInfo"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="400">
+    
+    <Grid Background="#E6000000">
+        <Border BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="12" Margin="10">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#E6000000" Offset="0"/>
+                    <GradientStop Color="#E6111111" Offset="1"/>
+                    <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+                    <TextBlock Text="🌍" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="World Info" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#FFFFFFFF"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Tabs -->
+                <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TabItem">
+                                        <Border Name="Border" Background="#44000000" BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="8,8,0,0" Margin="0,0,5,0">
+                                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="12,6"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="#E61E40AF"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TabControl.Resources>
+                    
+                    <!-- Lore Items Tab -->
+                    <TabItem Header="📚 Lore Items">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Button Grid.Row="0" x:Name="AddLoreButton" Content="➕ Add Lore Item" 
+                                    Width="120" Height="30" HorizontalAlignment="Left" Margin="0,0,0,10"
+                                    Click="AddLoreButton_Click"/>
+                            
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="LoreItemsPanel">
+                                    <!-- Lore items will be added here -->
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </TabItem>
+                    
+                    <!-- Character Notes Tab -->
+                    <TabItem Header="📝 Character Notes">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Character:" Foreground="#FFFFFFFF" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="CharacterComboBox" Width="150" Height="30"/>
+                            </StackPanel>
+                            
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="CharacterNotesPanel">
+                                    <!-- Character notes will be added here -->
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </TabItem>
+                    
+                    <!-- World Settings Tab -->
+                    <TabItem Header="⚙️ World Settings">
+                        <ScrollViewer Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="World Name:" Foreground="#FFFFFFFF" Margin="0,0,0,5"/>
+                                <TextBox x:Name="WorldNameTextBox" Height="30" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="World Description:" Foreground="#FFFFFFFF" Margin="0,0,0,5"/>
+                                <TextBox x:Name="WorldDescriptionTextBox" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Time Period:" Foreground="#FFFFFFFF" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TimePeriodTextBox" Height="30" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Location:" Foreground="#FFFFFFFF" Margin="0,0,0,5"/>
+                                <TextBox x:Name="LocationTextBox" Height="30" Margin="0,0,0,15"/>
+                                
+                                <Button x:Name="SaveWorldSettingsButton" Content="💾 Save Settings" 
+                                        Width="150" Height="35" HorizontalAlignment="Right"
+                                        Click="SaveWorldSettingsButton_Click"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+                
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button x:Name="CloseButton" Content="✕ Close" 
+                            Width="80" Height="35"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

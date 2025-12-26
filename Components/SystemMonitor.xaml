@@ -1,0 +1,195 @@
+<UserControl x:Class="LLMOverlay.Components.SystemMonitor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="350">
+    
+    <Grid Background="#E6000000">
+        <Border BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="12" Margin="10">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#E6000000" Offset="0"/>
+                    <GradientStop Color="#E6111111" Offset="1"/>
+                    <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+                    <TextBlock Text="📊" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="System Monitor" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#FFFFFFFF"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- System Status -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- CPU Usage -->
+                        <Border Style="{StaticResource SystemMessageBubble}" Margin="0,0,0,15">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Column="0" Text="🖥️ CPU" 
+                                               Foreground="#FFFFFFFF" FontSize="14" FontWeight="Bold"
+                                               VerticalAlignment="Center"/>
+                                    
+                                    <ProgressBar Grid.Column="1" x:Name="CpuProgressBar" 
+                                                 Height="20" Margin="10,0,10,0" 
+                                                 Background="#44000000" 
+                                                 Foreground="#FF0078D4"
+                                                 BorderThickness="0"/>
+                                    
+                                    <TextBlock Grid.Column="2" x:Name="CpuTextBlock" 
+                                               Text="0%" 
+                                               Foreground="#FFFFFFFF" FontSize="12"
+                                               VerticalAlignment="Center" Width="40"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Memory Usage -->
+                        <Border Style="{StaticResource SystemMessageBubble}" Margin="0,0,0,15">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Column="0" Text="💾 Memory" 
+                                               Foreground="#FFFFFFFF" FontSize="14" FontWeight="Bold"
+                                               VerticalAlignment="Center"/>
+                                    
+                                    <ProgressBar Grid.Column="1" x:Name="MemoryProgressBar" 
+                                                 Height="20" Margin="10,0,10,0" 
+                                                 Background="#44000000" 
+                                                 Foreground="#FF40E0D0"
+                                                 BorderThickness="0"/>
+                                    
+                                    <TextBlock Grid.Column="2" x:Name="MemoryTextBlock" 
+                                               Text="0%" 
+                                               Foreground="#FFFFFFFF" FontSize="12"
+                                               VerticalAlignment="Center" Width="40"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- LLM Services Status -->
+                        <Border Style="{StaticResource SystemMessageBubble}" Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="🤖 LLM Services" 
+                                           Foreground="#FFFFFFFF" FontSize="14" FontWeight="Bold"
+                                           Margin="0,0,0,10"/>
+                                
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- OpenAI Status -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Grid.Column="0" Text="OpenAI API" 
+                                                   Foreground="#FFFFFFFF" FontSize="12"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <Ellipse Grid.Column="1" x:Name="OpenAIStatusDot" 
+                                                 Width="10" Height="10" 
+                                                 Fill="#FF0000" 
+                                                 VerticalAlignment="Center"/>
+                                    </Grid>
+                                    
+                                    <!-- Local Model Status -->
+                                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Grid.Column="0" Text="Local Model" 
+                                                   Foreground="#FFFFFFFF" FontSize="12"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <Ellipse Grid.Column="1" x:Name="LocalModelStatusDot" 
+                                                 Width="10" Height="10" 
+                                                 Fill="#FF0000" 
+                                                 VerticalAlignment="Center"/>
+                                    </Grid>
+                                    
+                                    <!-- API Response Time -->
+                                    <Grid Grid.Row="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Grid.Column="0" Text="Response Time" 
+                                                   Foreground="#FFFFFFFF" FontSize="12"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <TextBlock Grid.Column="1" x:Name="ResponseTimeText" 
+                                                   Text="-- ms" 
+                                                   Foreground="#FFFFFFFF" FontSize="12"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- System Info -->
+                        <Border Style="{StaticResource SystemMessageBubble}">
+                            <StackPanel>
+                                <TextBlock Text="ℹ️ System Info" 
+                                           Foreground="#FFFFFFFF" FontSize="14" FontWeight="Bold"
+                                           Margin="0,0,0,10"/>
+                                
+                                <StackPanel>
+                                    <TextBlock x:Name="OSTextBlock" Text="OS: --" 
+                                               Foreground="#FFFFFFFF" FontSize="11" Margin="0,0,0,5"/>
+                                    <TextBlock x:Name="DotNetTextBlock" Text=".NET: --" 
+                                               Foreground="#FFFFFFFF" FontSize="11" Margin="0,0,0,5"/>
+                                    <TextBlock x:Name="UptimeTextBlock" Text="Uptime: --" 
+                                               Foreground="#FFFFFFFF" FontSize="11" Margin="0,0,0,5"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+                
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button x:Name="RefreshButton" Content="🔄 Refresh" 
+                            Width="80" Height="35" Margin="0,0,10,0"
+                            Click="RefreshButton_Click"/>
+                    <Button x:Name="CloseButton" Content="✕ Close" 
+                            Width="80" Height="35"
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

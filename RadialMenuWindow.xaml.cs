@@ -1,67 +1,83 @@
-using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace LLMOverlay
 {
     public partial class RadialMenuWindow : Window
     {
-        private readonly MainWindow _main;
-        private readonly LLMService _service;
-        private readonly ObservableCollection<string> _recent;
+        private MainWindow _mainWindow;
+        private List<Contact> _recentContacts;
 
-        public RadialMenuWindow(MainWindow main, LLMService service, ObservableCollection<string> recent)
+        public RadialMenuWindow()
         {
             InitializeComponent();
-            _main = main;
-            _service = service;
-            _recent = recent;
-
-            RecentContactsList.ItemsSource = _recent;
-            UpdateCurrentModel();
-            UpdateContactsVisibility();
-
-            _recent.CollectionChanged += (_, __) => UpdateContactsVisibility();
-            Loaded += RadialMenuWindow_Loaded;
-            Deactivated += (_, __) => RadialMenuPopup.IsOpen = false;
         }
 
-        private void RadialMenuWindow_Loaded(object sender, RoutedEventArgs e)
+        private void LoadRecentContacts()
         {
-            var workArea = SystemParameters.WorkArea;
-            Left = workArea.Left + 8;
-            Top = workArea.Top + 8;
+            // Load recent contacts from storage
+            // For now, we'll use placeholder data
+            _recentContacts = ContactManager.GetRecentContacts(2);
+            
+            // Update button tooltips with contact names
+            if (_recentContacts.Count > 0)
+            {
+                LastContact1Button.ToolTip = $"Recent: {_recentContacts[0].Name}";
+            }
+            
+            if (_recentContacts.Count > 1)
+            {
+                LastContact2Button.ToolTip = $"Recent: {_recentContacts[1].Name}";
+            }
         }
 
-        private void UpdateContactsVisibility()
         {
-            NoContactsText.Visibility = _recent.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (_recentContacts.Count > 0)
+            {
+                var contact = _recentContacts[0];
+                ContactManager.SetActiveContact(contact);
+                _mainWindow?.LoadContact(contact);
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("No recent contacts available.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
-        public void UpdateCurrentModel()
-        {
-            CurrentModelText.Text = _service.GetCurrentModel();
         }
 
-        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateCurrentModel();
-            UpdateContactsVisibility();
-            RadialMenuPopup.IsOpen = true;
-        }
-
-        private void LoadModelButton_Click(object sender, RoutedEventArgs e)
-        {
-            RadialMenuPopup.IsOpen = false;
-            _main.ShowFromRadial(showSettingsPanel: true);
-        }
-
-        private void CreatePersonaButton_Click(object sender, RoutedEventArgs e)
+        private void OpenChatButton_Click(object sender, RoutedEventArgs e)
         {
             RadialMenuPopup.IsOpen = false;
             _main.ShowFromRadial(showSettingsPanel: false);
-            _main.ShowPersonaComingSoon();
+        }
+
+        private void OpenCharacterButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenCharacterManager();
+        }
+
+        private void OpenWorldInfoButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenWorldInfo();
+        }
+
+        private void OpenSystemMonitorButton_Click(object sender, RoutedEventArgs e)
+        {
+            RadialMenuPopup.IsOpen = false;
+            _main.OpenSystemMonitor();
+        }
+
+        private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var modelWindow = new LoadModelWindow();
+            modelWindow.Owner = this;
+            modelWindow.ShowDialog();
+            this.Close();
         }
     }
 }
