@@ -6,7 +6,7 @@ namespace LLMOverlay
 {
     public partial class App : Application
     {
-        public Window? MainWindow { get; private set; }
+        public new Window? MainWindow { get; private set; }
 
         public App()
         {

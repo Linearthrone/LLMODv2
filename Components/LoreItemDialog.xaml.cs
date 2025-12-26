@@ -9,7 +9,7 @@ namespace LLMOverlay.Components
     {
         public LoreItem LoreItem { get; private set; }
         
-        public LoreItemDialog(LoreItem existingLoreItem = null)
+        public LoreItemDialog(LoreItem? existingLoreItem = null)
         {
             InitializeComponent();
             
@@ -42,8 +42,8 @@ namespace LLMOverlay.Components
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            LoreItem.Title = TitleTextBox.Text?.Trim();
-            LoreItem.Content = ContentTextBox.Text?.Trim();
+            LoreItem.Title = TitleTextBox.Text?.Trim() ?? string.Empty;
+            LoreItem.Content = ContentTextBox.Text?.Trim() ?? string.Empty;
             LoreItem.Tags = TagsTextBox.Text?.Split(',', StringSplitOptions.RemoveEmptyEntries)
                                       .Select(t => t.Trim())
                                       .Where(t => !string.IsNullOrEmpty(t))

@@ -4,7 +4,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.IO;
 
 namespace LLMOverlay
 {
@@ -26,6 +29,7 @@ namespace LLMOverlay
             // Set default values
             ApiTypeComboBox.SelectedIndex = 0; // OpenAI
             EnableStreamingCheckBox.IsChecked = true;
+            UpdateLocalControlsVisibility();
             
             // Initialize parameter displays
             UpdateParameterDisplays();
@@ -47,6 +51,7 @@ namespace LLMOverlay
         {
             UpdateApiConfiguration();
             PopulateModels();
+            UpdateLocalControlsVisibility();
         }
 
         private void UpdateApiConfiguration()
@@ -139,6 +144,18 @@ namespace LLMOverlay
             }
         }
 
+        private void UpdateLocalControlsVisibility()
+        {
+            var selectedApi = (ApiTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+            bool isOllama = selectedApi != null && selectedApi.Contains("Ollama", StringComparison.OrdinalIgnoreCase);
+            bool isLocal = selectedApi != null && selectedApi.Contains("Local API", StringComparison.OrdinalIgnoreCase);
+
+            if (OllamaPullPanel != null)
+                OllamaPullPanel.Visibility = isOllama ? Visibility.Visible : Visibility.Collapsed;
+            if (LocalBrowsePanel != null)
+                LocalBrowsePanel.Visibility = isLocal ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         private async void TestApiButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -166,14 +183,105 @@ namespace LLMOverlay
             }
         }
 
+        private async void OllamaPullButton_Click(object sender, RoutedEventArgs e)
+        {
+            var modelName = OllamaModelNameTextBox.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(modelName))
+            {
+                ConnectionStatusText.Text = "❌ Enter a model name to pull.";
+                ConnectionStatusText.Foreground = System.Windows.Media.Brushes.LightCoral;
+                return;
+            }
+
+            try
+            {
+                ConnectionStatusText.Text = "Pulling model via ollama...";
+                ConnectionStatusText.Foreground = System.Windows.Media.Brushes.Yellow;
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "ollama",
+                    Arguments = $"pull {modelName}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                string? stderr = null;
+                await Task.Run(() =>
+                {
+                    using var proc = Process.Start(psi);
+                    if (proc == null) return;
+                    stderr = proc.StandardError.ReadToEnd();
+                    proc.WaitForExit();
+                    if (proc.ExitCode != 0 && string.IsNullOrWhiteSpace(stderr))
+                    {
+                        stderr = "ollama pull failed";
+                    }
+                });
+
+                if (!string.IsNullOrWhiteSpace(stderr))
+                {
+                    ConnectionStatusText.Text = $"❌ {stderr.Trim()}";
+                    ConnectionStatusText.Foreground = System.Windows.Media.Brushes.LightCoral;
+                    return;
+                }
+
+                EnsureModelInCombo(modelName);
+                ConnectionStatusText.Text = "✅ Model pulled and ready.";
+                ConnectionStatusText.Foreground = System.Windows.Media.Brushes.LightGreen;
+            }
+            catch (Exception ex)
+            {
+                ConnectionStatusText.Text = $"❌ Error: {ex.Message}";
+                ConnectionStatusText.Foreground = System.Windows.Media.Brushes.LightCoral;
+            }
+        }
+
+        private void BrowseLocalModelButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = "Select local model file",
+                Filter = "Model files (*.gguf;*.bin)|*.gguf;*.bin|All files (*.*)|*.*"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                var fileName = Path.GetFileName(dlg.FileName);
+                EnsureModelInCombo(fileName);
+                ModelComboBox.SelectedItem = fileName;
+                ConnectionStatusText.Text = $"✅ Selected local model: {fileName}";
+                ConnectionStatusText.Foreground = System.Windows.Media.Brushes.LightGreen;
+            }
+        }
+
+        private void EnsureModelInCombo(string modelName)
+        {
+            bool exists = false;
+            foreach (var item in ModelComboBox.Items)
+            {
+                if (string.Equals(item?.ToString(), modelName, StringComparison.OrdinalIgnoreCase))
+                {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists)
+            {
+                ModelComboBox.Items.Add(modelName);
+            }
+        }
+
         private async Task<ApiTestResult> TestApiConnection()
         {
             var endpoint = EndpointTextBox.Text.Trim();
             var apiKey = ApiKeyPasswordBox.Password;
-            var model = (ModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
+            var selectedModel = ModelComboBox.SelectedItem?.ToString();
             var apiType = (ApiTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
 
-            if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(model))
+            if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(selectedModel))
             {
                 return new ApiTestResult { Success = false, ErrorMessage = "Endpoint and model are required" };
             }
@@ -181,18 +289,18 @@ namespace LLMOverlay
             try
             {
                 _httpClient.DefaultRequestHeaders.Clear();
-                
+
                 if (!string.IsNullOrEmpty(apiKey))
                 {
-                    if (apiType.Contains("OpenAI") || apiType.Contains("OpenRouter"))
+                    if (!string.IsNullOrEmpty(apiType) && (apiType.Contains("OpenAI") || apiType.Contains("OpenRouter")))
                     {
                         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
                     }
-                    else if (apiType.Contains("Anthropic"))
+                    else if (!string.IsNullOrEmpty(apiType) && apiType.Contains("Anthropic"))
                     {
                         _httpClient.DefaultRequestHeaders.Add("x-api-key", apiKey);
                     }
-                    else if (apiType.Contains("Google"))
+                    else if (!string.IsNullOrEmpty(apiType) && apiType.Contains("Google"))
                     {
                         endpoint += $"?key={apiKey}";
                     }
@@ -201,7 +309,7 @@ namespace LLMOverlay
                 // Create a simple test request
                 var testRequest = new
                 {
-                    model = model,
+                    model = selectedModel,
                     messages = new[]
                     {
                         new { role = "user", content = "Hello" }
@@ -217,7 +325,7 @@ namespace LLMOverlay
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    return new ApiTestResult { Success = true, ModelName = model };
+                    return new ApiTestResult { Success = true, ModelName = selectedModel };
                 }
                 else
                 {
@@ -238,14 +346,13 @@ namespace LLMOverlay
                 try
                 {
                     CollectModelParameters();
-                    
-                    // Save configuration to application settings
+
                     var modelConfig = new ModelConfiguration
                     {
-                        ApiType = (ApiTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString(),
+                        ApiType = (ApiTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty,
                         Endpoint = EndpointTextBox.Text.Trim(),
-                        ApiKey = ApiKeyPasswordBox.Password,
-                        Model = (ModelComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString(),
+                        ApiKey = ApiKeyPasswordBox.Password ?? string.Empty,
+                        Model = ModelComboBox.SelectedItem?.ToString() ?? string.Empty,
                         Parameters = _modelParameters
                     };
                     
@@ -304,7 +411,11 @@ namespace LLMOverlay
                 "model_config.json");
             
             var json = JsonConvert.SerializeObject(config, Formatting.Indented);
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(settingsPath));
+            var directory = System.IO.Path.GetDirectoryName(settingsPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            }
             System.IO.File.WriteAllText(settingsPath, json);
         }
 
@@ -374,16 +485,16 @@ namespace LLMOverlay
     public class ApiTestResult
     {
         public bool Success { get; set; }
-        public string ModelName { get; set; }
-        public string ErrorMessage { get; set; }
+        public string ModelName { get; set; } = string.Empty;
+        public string ErrorMessage { get; set; } = string.Empty;
     }
 
     public class ModelConfiguration
     {
-        public string ApiType { get; set; }
-        public string Endpoint { get; set; }
-        public string ApiKey { get; set; }
-        public string Model { get; set; }
-        public Dictionary<string, object> Parameters { get; set; }
+        public string ApiType { get; set; } = string.Empty;
+        public string Endpoint { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        public Dictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
     }
 }

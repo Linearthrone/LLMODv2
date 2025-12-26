@@ -10,8 +10,8 @@ namespace LLMOverlay.Services
     public static class ContactManager
     {
         private static readonly string ContactsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LLMOverlay", "contacts");
-        private static Contact _activeContact;
-        private static List<Contact> _contacts;
+        private static Contact? _activeContact;
+        private static List<Contact> _contacts = new List<Contact>();
 
         static ContactManager()
         {
@@ -69,17 +69,17 @@ namespace LLMOverlay.Services
             return _contacts.OrderByDescending(c => c.LastActive).Take(count).ToList();
         }
 
-        public static Contact GetContactById(string id)
+        public static Contact? GetContactById(string? id)
         {
             return _contacts.FirstOrDefault(c => c.Id == id);
         }
 
-        public static Contact GetActiveContact()
+        public static Contact? GetActiveContact()
         {
             return _activeContact;
         }
 
-        public static void SetActiveContact(Contact contact)
+        public static void SetActiveContact(Contact? contact)
         {
             if (contact != null)
             {
@@ -89,7 +89,7 @@ namespace LLMOverlay.Services
             }
         }
 
-        public static void SaveContact(Contact contact)
+        public static void SaveContact(Contact? contact)
         {
             if (contact == null) return;
 

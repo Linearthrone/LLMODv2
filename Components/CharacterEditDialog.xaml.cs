@@ -34,11 +34,11 @@ namespace LLMOverlay.Components
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdatedCharacter.Name = NameTextBox.Text?.Trim();
-            UpdatedCharacter.Description = DescriptionTextBox.Text?.Trim();
-            UpdatedCharacter.Personality = PersonalityTextBox.Text?.Trim();
-            UpdatedCharacter.FirstMessage = FirstMessageTextBox.Text?.Trim();
-            UpdatedCharacter.Avatar = AvatarTextBox.Text?.Trim();
+            UpdatedCharacter.Name = NameTextBox.Text?.Trim() ?? string.Empty;
+            UpdatedCharacter.Description = DescriptionTextBox.Text?.Trim() ?? string.Empty;
+            UpdatedCharacter.Personality = PersonalityTextBox.Text?.Trim() ?? string.Empty;
+            UpdatedCharacter.FirstMessage = FirstMessageTextBox.Text?.Trim() ?? string.Empty;
+            UpdatedCharacter.Avatar = AvatarTextBox.Text?.Trim() ?? string.Empty;
             
             if (string.IsNullOrWhiteSpace(UpdatedCharacter.Name))
             {

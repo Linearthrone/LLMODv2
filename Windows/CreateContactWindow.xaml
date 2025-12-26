@@ -179,7 +179,7 @@
                             </GroupBox>
                             
                             <!-- Skills -->
-                            <GroupBox Header="Skills & Abilities" Foreground="White" Margin="0,0,0,15">
+                            <GroupBox Header="Skills N Abilities" Foreground="White" Margin="0,0,0,15">
                                 <TextBox x:Name="SkillsTextBox" 
                                          Height="80" 
                                          TextWrapping="Wrap" 
