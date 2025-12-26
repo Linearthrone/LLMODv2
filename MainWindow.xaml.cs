@@ -633,6 +633,9 @@ namespace LLMOverlay
                 _radialMenuWindow.Closed += (_, __) => _radialMenuWindow = null;
             }
 
+            // Force the window to measure itself before positioning
+            _radialMenuWindow.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            
             var workArea = SystemParameters.WorkArea;
             var menuWidth = _radialMenuWindow.ActualWidth > 0 ? _radialMenuWindow.ActualWidth : _radialMenuWindow.Width;
             var menuHeight = _radialMenuWindow.ActualHeight > 0 ? _radialMenuWindow.ActualHeight : _radialMenuWindow.Height;
@@ -642,23 +645,22 @@ namespace LLMOverlay
 
             if (anchor != null)
             {
+                // Get the center point of the anchor element relative to the screen
                 var anchorCenter = anchor.TranslatePoint(new Point(anchor.ActualWidth / 2, anchor.ActualHeight / 2), this);
                 var screenPoint = PointToScreen(anchorCenter);
-                var source = PresentationSource.FromVisual(this);
-                if (source?.CompositionTarget != null)
-                {
-                    screenPoint = source.CompositionTarget.TransformFromDevice.Transform(screenPoint);
-                }
 
+                // Center the menu on the anchor button
                 left = screenPoint.X - (menuWidth / 2);
                 top = screenPoint.Y - (menuHeight / 2);
             }
             else
             {
+                // Default position near the bottom-right of the screen
                 left = workArea.Right - menuWidth - TrayWidth - 10;
                 top = workArea.Bottom - menuHeight - 60;
             }
 
+            // Ensure the menu stays within the screen bounds
             left = Math.Max(workArea.Left, Math.Min(left, workArea.Right - menuWidth));
             top = Math.Max(workArea.Top, Math.Min(top, workArea.Bottom - menuHeight));
 
