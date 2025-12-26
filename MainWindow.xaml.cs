@@ -12,7 +12,6 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using LLMOverlay.Components;
 
 namespace LLMOverlay
 {
@@ -584,6 +583,32 @@ namespace LLMOverlay
         public void ShowPersonaComingSoon()
         {
             AddSystemMessage("Persona creation: configure prompts and save presets (ollama or HuggingFace). Coming soon.");
+        }
+
+        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Open radial menu at the button position
+            var button = (Button)sender;
+            var position = button.PointToScreen(new Point(0, 0));
+            
+            _radialMenuWindow = new RadialMenuWindow();
+            _radialMenuWindow.Owner = this;
+            _radialMenuWindow.SetMainWindow(this);
+            _radialMenuWindow.Left = position.X - 100; // Center horizontally on button
+            _radialMenuWindow.Top = position.Y - 200;  // Position above button
+            _radialMenuWindow.Show();
+        }
+
+        public void LoadContact(Contact contact)
+        {
+            // Load the contact into the chat interface
+            // This would update the chat interface to use the selected contact
+            if (contact != null)
+            {
+                AddSystemMessage($"Loaded contact: {contact.Name} ({contact.BaseModel})");
+                // Update the interface to show the contact's avatar and info
+                // Set the active model configuration based on the contact's settings
+            }
         }
 
         protected override void OnClosed(EventArgs e)
