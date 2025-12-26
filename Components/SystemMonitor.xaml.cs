@@ -12,7 +12,7 @@ namespace LLMOverlay.Components
 {
     public partial class SystemMonitor : UserControl
     {
-        private DispatcherTimer _updateTimer;
+        private DispatcherTimer? _updateTimer;
         private readonly LLMService _llmService;
         private DateTime _startTime = DateTime.Now;
         

@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using LLMOverlay.Models;
+using LLMOverlay.Components;
 
 namespace LLMOverlay
 {
@@ -49,6 +51,10 @@ namespace LLMOverlay
         private const int LWA_COLORKEY = 0x00000001;
         private const int LWA_ALPHA = 0x00000002;
 
+        private Window? _characterWindow;
+        private Window? _worldInfoWindow;
+        private Window? _systemMonitorWindow;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -60,8 +66,7 @@ namespace LLMOverlay
             _settingsEndpointInput = SettingsEndpointInput;
             _settingsModelComboBox = SettingsModelComboBox;
 
-            _radialMenuWindow = new RadialMenuWindow(this, _llmService, _recentAssistantSnippets);
-            _radialMenuWindow.Show();
+            _radialMenuWindow = new RadialMenuWindow(this);
 
             InitializeChatInterface();
             LoadSettings();
@@ -127,7 +132,7 @@ namespace LLMOverlay
             // Update layout when window size changes
         }
 
-        private void MainWindow_Deactivated(object sender, EventArgs e)
+        private void MainWindow_Deactivated(object? sender, EventArgs e)
         {
             // Minimize to tray when window loses focus
             MinimizeToTray();
@@ -217,9 +222,12 @@ namespace LLMOverlay
 
         public void OpenCharacterManager()
         {
+            if (ToggleComponentWindow(ref _characterWindow))
+                return;
+
             var manager = new CharacterManager();
             manager.CharacterSelected += OnCharacterSelected;
-            ShowComponentWindow(manager, 520, 640);
+            _characterWindow = CreateComponentWindow(manager, 520, 640, () => _characterWindow = null);
         }
 
         private void CharacterManagerButton_Click(object sender, RoutedEventArgs e)
@@ -235,8 +243,11 @@ namespace LLMOverlay
 
         public void OpenWorldInfo()
         {
+            if (ToggleComponentWindow(ref _worldInfoWindow))
+                return;
+
             var worldInfo = new WorldInfo();
-            ShowComponentWindow(worldInfo, 520, 640);
+            _worldInfoWindow = CreateComponentWindow(worldInfo, 520, 640, () => _worldInfoWindow = null);
         }
 
         private void WorldInfoButton_Click(object sender, RoutedEventArgs e)
@@ -246,8 +257,11 @@ namespace LLMOverlay
 
         public void OpenSystemMonitor()
         {
+            if (ToggleComponentWindow(ref _systemMonitorWindow))
+                return;
+
             var monitor = new SystemMonitor();
-            ShowComponentWindow(monitor, 420, 500);
+            _systemMonitorWindow = CreateComponentWindow(monitor, 420, 500, () => _systemMonitorWindow = null);
         }
 
         private void SystemMonitorButton_Click(object sender, RoutedEventArgs e)
@@ -255,18 +269,7 @@ namespace LLMOverlay
             OpenSystemMonitor();
         }
 
-        private void SettingsQuickButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isMinimized)
-            {
-                ExpandFromTray(true);
-                return;
-            }
-
-            SettingsPanel.Visibility = Visibility.Visible;
-        }
-
-        private void ShowComponentWindow(UserControl control, double width, double height)
+        private Window CreateComponentWindow(UserControl control, double width, double height, Action onClosed)
         {
             var window = new Window
             {
@@ -306,7 +309,21 @@ namespace LLMOverlay
             window.Left = workArea.Left + 12;
             window.Top = targetTop < workArea.Top + 12 ? workArea.Top + 12 : targetTop;
 
+            window.Closed += (_, __) => onClosed();
             window.Show();
+            return window;
+        }
+
+        private bool ToggleComponentWindow(ref Window? windowField)
+        {
+            if (windowField != null)
+            {
+                windowField.Close();
+                windowField = null;
+                return true;
+            }
+
+            return false;
         }
 
          private async void SendButton_Click(object sender, RoutedEventArgs e)
@@ -585,20 +602,6 @@ namespace LLMOverlay
             AddSystemMessage("Persona creation: configure prompts and save presets (ollama or HuggingFace). Coming soon.");
         }
 
-        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Open radial menu at the button position
-            var button = (Button)sender;
-            var position = button.PointToScreen(new Point(0, 0));
-            
-            _radialMenuWindow = new RadialMenuWindow();
-            _radialMenuWindow.Owner = this;
-            _radialMenuWindow.SetMainWindow(this);
-            _radialMenuWindow.Left = position.X - 100; // Center horizontally on button
-            _radialMenuWindow.Top = position.Y - 200;  // Position above button
-            _radialMenuWindow.Show();
-        }
-
         public void LoadContact(Contact contact)
         {
             // Load the contact into the chat interface
@@ -615,6 +618,33 @@ namespace LLMOverlay
         {
             base.OnClosed(e);
             _radialMenuWindow?.Close();
+        }
+
+        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowRadialMenu();
+        }
+
+        private void ShowRadialMenu()
+        {
+            if (_radialMenuWindow == null || !_radialMenuWindow.IsLoaded)
+            {
+                _radialMenuWindow = new RadialMenuWindow(this);
+                _radialMenuWindow.Closed += (_, __) => _radialMenuWindow = null;
+            }
+
+            var workArea = SystemParameters.WorkArea;
+            _radialMenuWindow.Left = workArea.Right - _radialMenuWindow.Width - TrayWidth - 10;
+            _radialMenuWindow.Top = workArea.Bottom - _radialMenuWindow.Height - 60;
+
+            if (!_radialMenuWindow.IsVisible)
+            {
+                _radialMenuWindow.Show();
+            }
+            else
+            {
+                _radialMenuWindow.Activate();
+            }
         }
     }
 }

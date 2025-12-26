@@ -297,10 +297,10 @@ namespace LLMOverlay.Components
 
         private void SaveWorldSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            WorldSettings.Name = WorldNameTextBox.Text?.Trim();
-            WorldSettings.Description = WorldDescriptionTextBox.Text?.Trim();
-            WorldSettings.TimePeriod = TimePeriodTextBox.Text?.Trim();
-            WorldSettings.Location = LocationTextBox.Text?.Trim();
+            WorldSettings.Name = WorldNameTextBox.Text?.Trim() ?? string.Empty;
+            WorldSettings.Description = WorldDescriptionTextBox.Text?.Trim() ?? string.Empty;
+            WorldSettings.TimePeriod = TimePeriodTextBox.Text?.Trim() ?? string.Empty;
+            WorldSettings.Location = LocationTextBox.Text?.Trim() ?? string.Empty;
             
             SaveWorldSettings();
             MessageBox.Show("World settings saved!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);

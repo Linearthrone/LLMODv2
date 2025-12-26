@@ -130,5 +130,6 @@
                     </Button>
                 </Grid>
             </Border>
+        </Border>
     </Grid>
 </Window>

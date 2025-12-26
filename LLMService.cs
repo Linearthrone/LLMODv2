@@ -71,7 +71,7 @@ namespace LLMOverlay
             }
         }
 
-        public async Task<string> SendMessageAsync(string message, string attachments = null)
+        public async Task<string> SendMessageAsync(string message, string? attachments = null)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace LLMOverlay
             }
         }
 
-        private async Task<string> ProcessAttachments(string message, string attachmentPaths)
+        private async Task<string> ProcessAttachments(string message, string? attachmentPaths)
         {
             if (string.IsNullOrEmpty(attachmentPaths))
                 return message;
@@ -393,7 +393,7 @@ namespace LLMOverlay
             }
         }
 
-        private string GetSettingAsString(Dictionary<string, object> settings, string key)
+        private string? GetSettingAsString(Dictionary<string, object> settings, string key)
         {
             if (settings.ContainsKey(key) && settings[key] != null)
             {
