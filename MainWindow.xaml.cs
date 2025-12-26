@@ -50,6 +50,10 @@ namespace LLMOverlay
         private const int LWA_COLORKEY = 0x00000001;
         private const int LWA_ALPHA = 0x00000002;
 
+        private Window? _characterWindow;
+        private Window? _worldInfoWindow;
+        private Window? _systemMonitorWindow;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -218,9 +222,12 @@ namespace LLMOverlay
 
         public void OpenCharacterManager()
         {
+            if (ToggleComponentWindow(ref _characterWindow))
+                return;
+
             var manager = new CharacterManager();
             manager.CharacterSelected += OnCharacterSelected;
-            ShowComponentWindow(manager, 520, 640);
+            _characterWindow = CreateComponentWindow(manager, 520, 640, () => _characterWindow = null);
         }
 
         private void CharacterManagerButton_Click(object sender, RoutedEventArgs e)
@@ -236,8 +243,11 @@ namespace LLMOverlay
 
         public void OpenWorldInfo()
         {
+            if (ToggleComponentWindow(ref _worldInfoWindow))
+                return;
+
             var worldInfo = new WorldInfo();
-            ShowComponentWindow(worldInfo, 520, 640);
+            _worldInfoWindow = CreateComponentWindow(worldInfo, 520, 640, () => _worldInfoWindow = null);
         }
 
         private void WorldInfoButton_Click(object sender, RoutedEventArgs e)
@@ -247,8 +257,11 @@ namespace LLMOverlay
 
         public void OpenSystemMonitor()
         {
+            if (ToggleComponentWindow(ref _systemMonitorWindow))
+                return;
+
             var monitor = new SystemMonitor();
-            ShowComponentWindow(monitor, 420, 500);
+            _systemMonitorWindow = CreateComponentWindow(monitor, 420, 500, () => _systemMonitorWindow = null);
         }
 
         private void SystemMonitorButton_Click(object sender, RoutedEventArgs e)
@@ -256,18 +269,7 @@ namespace LLMOverlay
             OpenSystemMonitor();
         }
 
-        private void SettingsQuickButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isMinimized)
-            {
-                ExpandFromTray(true);
-                return;
-            }
-
-            SettingsPanel.Visibility = Visibility.Visible;
-        }
-
-        private void ShowComponentWindow(UserControl control, double width, double height)
+        private Window CreateComponentWindow(UserControl control, double width, double height, Action onClosed)
         {
             var window = new Window
             {
@@ -307,7 +309,21 @@ namespace LLMOverlay
             window.Left = workArea.Left + 12;
             window.Top = targetTop < workArea.Top + 12 ? workArea.Top + 12 : targetTop;
 
+            window.Closed += (_, __) => onClosed();
             window.Show();
+            return window;
+        }
+
+        private bool ToggleComponentWindow(ref Window? windowField)
+        {
+            if (windowField != null)
+            {
+                windowField.Close();
+                windowField = null;
+                return true;
+            }
+
+            return false;
         }
 
          private async void SendButton_Click(object sender, RoutedEventArgs e)
