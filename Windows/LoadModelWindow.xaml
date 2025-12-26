@@ -1,0 +1,437 @@
+<Window x:Class="LLMOverlay.LoadModelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Load Model Configuration" Height="700" Width="900"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False">
+    
+    <Grid>
+        <!-- Background with Glass Effect -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#E6000000" Offset="0"/>
+                <GradientStop Color="#E6111111" Offset="1"/>
+                <GradientStop Color="#22FFFFFF" Offset="0.5"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        
+        <Border BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="15">
+            <Border BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="14">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Title Bar -->
+                    <Grid Grid.Row="0" Height="40" VerticalAlignment="Top" Background="#11000000">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0" Text="Model Configuration" 
+                                   FontSize="18" FontWeight="Bold" 
+                                   Foreground="White" 
+                                   VerticalAlignment="Center" 
+                                   Margin="10,0"/>
+                        
+                        <Button Grid.Column="1" x:Name="CloseButton" 
+                                Content="❌" Width="30" Height="30" 
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Foreground="White" 
+                                Click="CloseButton_Click"/>
+                    </Grid>
+                    
+                    <!-- Content with Tabs -->
+                    <TabControl Grid.Row="1" Background="Transparent" Margin="0,10">
+                        <TabControl.Resources>
+                            <Style TargetType="TabItem">
+                                <Setter Property="Background" Value="#40000000"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="BorderBrush" Value="#66FFFFFF"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Margin" Value="2,0"/>
+                                <Setter Property="Padding" Value="10,5"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#404ECDC4"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TabControl.Resources>
+                        
+                        <!-- API Configuration Tab -->
+                        <TabItem Header="API Configuration">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="10">
+                                    <!-- API Type Selection -->
+                                    <GroupBox Header="API Type" Foreground="White" Margin="0,0,0,15">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <TextBlock Grid.Column="0" Text="API Type:" 
+                                                       Foreground="White" 
+                                                       VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" x:Name="ApiTypeComboBox" 
+                                                      Height="30" 
+                                                      Background="#40000000" 
+                                                      Foreground="White" 
+                                                      BorderBrush="#66FFFFFF" 
+                                                      BorderThickness="1" 
+                                                      Padding="5"
+                                                      SelectionChanged="ApiTypeComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="OpenAI (ChatGPT)"/>
+                                                <ComboBoxItem Content="Anthropic (Claude)"/>
+                                                <ComboBoxItem Content="Google AI (Gemini)"/>
+                                                <ComboBoxItem Content="Mistral AI"/>
+                                                <ComboBoxItem Content="OpenRouter"/>
+                                                <ComboBoxItem Content="Local API (Ollama)"/>
+                                                <ComboBoxItem Content="Local API (KoboldCpp)"/>
+                                                <ComboBoxItem Content="Custom API"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </GroupBox>
+                                    
+                                    <!-- API Configuration -->
+                                    <GroupBox Header="API Settings" Foreground="White" Margin="0,0,0,15">
+                                        <StackPanel>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Endpoint:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="1" x:Name="EndpointTextBox" 
+                                                         Height="30" 
+                                                         Background="#40000000" 
+                                                         Foreground="White" 
+                                                         BorderBrush="#66FFFFFF" 
+                                                         BorderThickness="1" 
+                                                         Padding="5"
+                                                         Text="https://api.openai.com/v1"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="API Key:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <PasswordBox Grid.Column="1" x:Name="ApiKeyPasswordBox" 
+                                                             Height="30" 
+                                                             Background="#40000000" 
+                                                             Foreground="White" 
+                                                             BorderBrush="#66FFFFFF" 
+                                                             BorderThickness="1" 
+                                                             Padding="5"/>
+                                                <Button Grid.Column="2" x:Name="TestApiButton" 
+                                                        Content="Test" 
+                                                        Width="60" Height="30" 
+                                                        Background="#409B59B6" 
+                                                        Foreground="White" 
+                                                        BorderThickness="0" 
+                                                        Margin="5,0"
+                                                        Click="TestApiButton_Click"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Model:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <ComboBox Grid.Column="1" x:Name="ModelComboBox" 
+                                                          Height="30" 
+                                                          Background="#40000000" 
+                                                          Foreground="White" 
+                                                          BorderBrush="#66FFFFFF" 
+                                                          BorderThickness="1" 
+                                                          Padding="5">
+                                                    <!-- Models will be populated based on API type -->
+                                                </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </GroupBox>
+                                    
+                                    <!-- Connection Test Results -->
+                                    <GroupBox Header="Connection Status" Foreground="White" Margin="0,0,0,15">
+                                        <TextBlock x:Name="ConnectionStatusText" 
+                                                   Text="Not tested" 
+                                                   Foreground="#AAAAAA" 
+                                                   Margin="5"/>
+                                    </GroupBox>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        
+                        <!-- Model Parameters Tab -->
+                        <TabItem Header="Model Parameters">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="10">
+                                    <!-- Context Settings -->
+                                    <GroupBox Header="Context Settings" Foreground="White" Margin="0,0,0,15">
+                                        <StackPanel>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Response Length:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="MaxTokensSlider" 
+                                                        Minimum="1" Maximum="8192" 
+                                                        Value="2048" 
+                                                        TickFrequency="512" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="MaxTokensSlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="MaxTokensText" 
+                                                           Text="2048" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Context Length:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="ContextLengthSlider" 
+                                                        Minimum="512" Maximum="32768" 
+                                                        Value="4096" 
+                                                        TickFrequency="1024" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="ContextLengthSlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="ContextLengthText" 
+                                                           Text="4096" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </GroupBox>
+                                    
+                                    <!-- Sampler Parameters -->
+                                    <GroupBox Header="Sampler Parameters" Foreground="White" Margin="0,0,0,15">
+                                        <StackPanel>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Temperature:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="TemperatureSlider" 
+                                                        Minimum="0" Maximum="2" 
+                                                        Value="0.7" 
+                                                        TickFrequency="0.1" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="TemperatureSlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="TemperatureText" 
+                                                           Text="0.7" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Top P:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="TopPSlider" 
+                                                        Minimum="0" Maximum="1" 
+                                                        Value="0.9" 
+                                                        TickFrequency="0.05" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="TopPSlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="TopPText" 
+                                                           Text="0.9" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Frequency Penalty:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="FrequencyPenaltySlider" 
+                                                        Minimum="-2" Maximum="2" 
+                                                        Value="0" 
+                                                        TickFrequency="0.1" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="FrequencyPenaltySlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="FrequencyPenaltyText" 
+                                                           Text="0" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Presence Penalty:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="PresencePenaltySlider" 
+                                                        Minimum="-2" Maximum="2" 
+                                                        Value="0" 
+                                                        TickFrequency="0.1" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="PresencePenaltySlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="PresencePenaltyText" 
+                                                           Text="0" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </GroupBox>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        
+                        <!-- Advanced Settings Tab -->
+                        <TabItem Header="Advanced Settings">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="10">
+                                    <GroupBox Header="Streaming Options" Foreground="White" Margin="0,0,0,15">
+                                        <StackPanel>
+                                            <CheckBox x:Name="EnableStreamingCheckBox" 
+                                                      Content="Enable Streaming" 
+                                                      Foreground="White" 
+                                                      IsChecked="True"/>
+                                            
+                                            <TextBlock Text="Stream responses as they are generated" 
+                                                       Foreground="#AAAAAA" 
+                                                       Margin="25,5,0,0"
+                                                       FontSize="12"/>
+                                        </StackPanel>
+                                    </GroupBox>
+                                    
+                                    <GroupBox Header="Advanced Sampling" Foreground="White" Margin="0,0,0,15">
+                                        <StackPanel>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Top K:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="TopKSlider" 
+                                                        Minimum="0" Maximum="100" 
+                                                        Value="0" 
+                                                        TickFrequency="5" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="TopKSlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="TopKText" 
+                                                           Text="0 (Disabled)" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                            
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Repetition Penalty:" 
+                                                           Foreground="White" 
+                                                           VerticalAlignment="Center"/>
+                                                <Slider Grid.Column="1" x:Name="RepetitionPenaltySlider" 
+                                                        Minimum="0" Maximum="2" 
+                                                        Value="1" 
+                                                        TickFrequency="0.1" 
+                                                        IsSnapToTickEnabled="True"
+                                                        ValueChanged="RepetitionPenaltySlider_ValueChanged"/>
+                                                <TextBlock Grid.Column="2" x:Name="RepetitionPenaltyText" 
+                                                           Text="1.0" 
+                                                           Foreground="White" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </GroupBox>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                    
+                    <!-- Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" 
+                                HorizontalAlignment="Right" 
+                                Margin="0,10,0,0">
+                        <Button x:Name="CancelButton" 
+                                Content="Cancel" 
+                                Width="80" Height="35" 
+                                Background="#40FF6B6B" 
+                                Foreground="White" 
+                                BorderThickness="0" 
+                                Margin="0,0,10,0" 
+                                Click="CancelButton_Click"/>
+                        <Button x:Name="LoadModelButton" 
+                                Content="Load Model" 
+                                Width="120" Height="35" 
+                                Background="#404ECDC4" 
+                                Foreground="White" 
+                                BorderThickness="0" 
+                                Click="LoadModelButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

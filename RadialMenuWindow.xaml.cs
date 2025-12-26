@@ -1,62 +1,51 @@
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace LLMOverlay
 {
     public partial class RadialMenuWindow : Window
     {
-        private readonly MainWindow _main;
-        private readonly LLMService _service;
-        private readonly ObservableCollection<string> _recent;
+        private MainWindow _mainWindow;
+        private List<Contact> _recentContacts;
 
-        public RadialMenuWindow(MainWindow main, LLMService service, ObservableCollection<string> recent)
+        public RadialMenuWindow()
         {
             InitializeComponent();
-            _main = main;
-            _service = service;
-            _recent = recent;
-
-            UpdateCurrentModel();
-            UpdateRecentSnippet();
-
-            _recent.CollectionChanged += (_, __) => UpdateRecentSnippet();
-            Loaded += RadialMenuWindow_Loaded;
-            Deactivated += (_, __) => RadialMenuPopup.IsOpen = false;
         }
 
-        private void RadialMenuWindow_Loaded(object sender, RoutedEventArgs e)
+        private void LoadRecentContacts()
         {
-            var workArea = SystemParameters.WorkArea;
-            Left = workArea.Left + 8;
-            Top = workArea.Top + 8;
-        }
-
-        public void UpdateCurrentModel()
-        {
-            CurrentModelText.Text = _service.GetCurrentModel();
-        }
-
-        private void UpdateRecentSnippet()
-        {
-            if (_recent.Count == 0)
+            // Load recent contacts from storage
+            // For now, we'll use placeholder data
+            _recentContacts = ContactManager.GetRecentContacts(2);
+            
+            // Update button tooltips with contact names
+            if (_recentContacts.Count > 0)
             {
-                RecentSnippetText.Text = "No AI responses yet";
-                RecentSnippetText.Opacity = 0.7;
-                return;
+                LastContact1Button.ToolTip = $"Recent: {_recentContacts[0].Name}";
             }
-
-            RecentSnippetText.Text = _recent.Last();
-            RecentSnippetText.Opacity = 1;
+            
+            if (_recentContacts.Count > 1)
+            {
+                LastContact2Button.ToolTip = $"Recent: {_recentContacts[1].Name}";
+            }
         }
 
-        private void RadialMenuButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdateCurrentModel();
-            UpdateRecentSnippet();
-            RadialMenuPopup.IsOpen = true;
+            if (_recentContacts.Count > 0)
+            {
+                var contact = _recentContacts[0];
+                ContactManager.SetActiveContact(contact);
+                _mainWindow?.LoadContact(contact);
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("No recent contacts available.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         }
 
         private void OpenChatButton_Click(object sender, RoutedEventArgs e)
@@ -85,8 +74,10 @@ namespace LLMOverlay
 
         private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            RadialMenuPopup.IsOpen = false;
-            _main.ShowFromRadial(showSettingsPanel: true);
+            var modelWindow = new LoadModelWindow();
+            modelWindow.Owner = this;
+            modelWindow.ShowDialog();
+            this.Close();
         }
     }
 }

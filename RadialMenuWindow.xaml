@@ -1,92 +1,134 @@
 <Window x:Class="LLMOverlay.RadialMenuWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RadialMenuWindow"
+        Title="RadialMenu" 
+        Height="300" Width="250"
         WindowStyle="None"
-        ResizeMode="NoResize"
         AllowsTransparency="True"
         Background="Transparent"
-        ShowInTaskbar="False"
         Topmost="True"
-        Width="140"
-        Height="140">
+        ShowInTaskbar="False">
+    
     <Grid>
-        <Button x:Name="RadialMenuButton"
-                Width="96" Height="96"
-                Background="Transparent"
-                BorderThickness="0"
-                Click="RadialMenuButton_Click">
-            <Border Width="96" Height="96" CornerRadius="48" BorderBrush="#33FFFFFF" BorderThickness="1">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#E6000000" Offset="0"/>
-                        <GradientStop Color="#E6111111" Offset="1"/>
-                        <GradientStop Color="#22FFFFFF" Offset="0.5"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Image Source="pack://application:,,,/Assets/app.ico" Stretch="Uniform"/>
+        <!-- Background with Glass Effect -->
+        <Grid.Background>
+            <RadialGradientBrush>
+                <GradientStop Color="#E6000000" Offset="0"/>
+                <GradientStop Color="#E6111111" Offset="0.7"/>
+                <GradientStop Color="#22FFFFFF" Offset="1"/>
+            </RadialGradientBrush>
+        </Grid.Background>
+        
+        <Border BorderBrush="#44FFFFFF" BorderThickness="1" CornerRadius="20">
+            <Border BorderBrush="#22FFFFFF" BorderThickness="1" CornerRadius="19">
+                <Grid Margin="10">
+                    <!-- Central Button -->
+                    <Button x:Name="CenterButton"
+                            Width="50" Height="50"
+                            Background="#40000000"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Click="CenterButton_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="25"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="❌" FontSize="20" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    
+                    <!-- Radial Buttons positioned in a circle -->
+                    <Button x:Name="LastContact1Button"
+                            Width="45" Height="45"
+                            Background="#40FF6B6B"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Margin="0,-100,0,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Click="LastContact1Button_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="22"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="👤" FontSize="18" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    
+                    <Button x:Name="LastContact2Button"
+                            Width="45" Height="45"
+                            Background="#404ECDC4"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Margin="0,-70,70,35"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Click="LastContact2Button_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="22"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="👥" FontSize="18" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    
+                    <Button x:Name="ContactDirectoryButton"
+                            Width="45" Height="45"
+                            Background="#409B59B6"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Margin="0,0,100,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Click="ContactDirectoryButton_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="22"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="📇" FontSize="18" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    
+                    <Button x:Name="LoadModelButton"
+                            Width="45" Height="45"
+                            Background="#40FFA07A"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Margin="0,70,70,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Click="LoadModelButton_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="22"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="🤖" FontSize="18" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    
+                    <Button x:Name="CreateContactButton"
+                            Width="45" Height="45"
+                            Background="#40FFD700"
+                            BorderBrush="#66FFFFFF"
+                            BorderThickness="1"
+                            Margin="0,100,0,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Click="CreateContactButton_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="22"/>
+                            </Style>
+                        </Button.Resources>
+                        <TextBlock Text="➕" FontSize="18" Foreground="White" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
             </Border>
-        </Button>
-        <Popup x:Name="RadialMenuPopup"
-               Placement="Center"
-               PlacementTarget="{Binding ElementName=RadialMenuButton}"
-               AllowsTransparency="True"
-               StaysOpen="False"
-               PopupAnimation="Fade">
-            <Grid Width="260" Height="260">
-                <Grid.Resources>
-                    <Style x:Key="RadialActionButtonStyle" TargetType="Button">
-                        <Setter Property="Width" Value="56"/>
-                        <Setter Property="Height" Value="56"/>
-                        <Setter Property="Background" Value="#22FFFFFF"/>
-                        <Setter Property="BorderBrush" Value="#55FFFFFF"/>
-                        <Setter Property="BorderThickness" Value="1"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="28">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Grid.Resources>
-
-                <Ellipse Fill="#AA000000" Stroke="#33FFFFFF" StrokeThickness="1"/>
-                <Canvas>
-                    <Button Style="{StaticResource RadialActionButtonStyle}"
-                            Content="??"
-                            ToolTip="Open chat"
-                            Canvas.Left="102" Canvas.Top="14"
-                            Click="OpenChatButton_Click"/>
-                    <Button Style="{StaticResource RadialActionButtonStyle}"
-                            Content="??"
-                            ToolTip="Character manager"
-                            Canvas.Left="24" Canvas.Top="82"
-                            Click="OpenCharacterButton_Click"/>
-                    <Button Style="{StaticResource RadialActionButtonStyle}"
-                            Content="??"
-                            ToolTip="World info"
-                            Canvas.Left="180" Canvas.Top="82"
-                            Click="OpenWorldInfoButton_Click"/>
-                    <Button Style="{StaticResource RadialActionButtonStyle}"
-                            Content="??"
-                            ToolTip="System monitor"
-                            Canvas.Left="46" Canvas.Top="178"
-                            Click="OpenSystemMonitorButton_Click"/>
-                    <Button Style="{StaticResource RadialActionButtonStyle}"
-                            Content="??"
-                            ToolTip="Settings"
-                            Canvas.Left="158" Canvas.Top="178"
-                            Click="OpenSettingsButton_Click"/>
-                </Canvas>
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock Text="Quick Actions" FontWeight="SemiBold" FontSize="14" Foreground="White" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="CurrentModelText" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                    <TextBlock x:Name="RecentSnippetText" Foreground="#CCFFFFFF" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" Width="200" Margin="0,4,0,0"/>
-                </StackPanel>
-            </Grid>
-        </Popup>
     </Grid>
 </Window>
